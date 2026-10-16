@@ -1,0 +1,176 @@
+
+MAIN: mean wait (min) / service rate / charging queue (min per session)
+x3 160 chase   self=4.06/0.981/q5.5 det_mpc=3.42/0.980/q4.9 rob_mpc_nc=3.39/0.983/q4.9 rob_mpc_nc_bc=3.21/0.988/q0.8 ermpc=3.44/0.983/q3.7 ermpc_bc=3.27/0.986/q0.6 ermpc_rpi_bc=3.37/0.984/q0.8
+x3 160 stay    self=9.62/0.439/q0.1 det_mpc=3.68/0.977/q3.5 rob_mpc_nc=4.47/0.969/q3.8 rob_mpc_nc_bc=4.39/0.967/q0.8 ermpc=4.14/0.971/q5.1 ermpc_bc=4.07/0.970/q0.8 ermpc_rpi_bc=4.08/0.972/q1.0
+x3 160 hotspot self=3.58/0.982/q5.4 det_mpc=3.53/0.979/q3.3 rob_mpc_nc=3.60/0.978/q4.1 rob_mpc_nc_bc=3.58/0.980/q1.1 ermpc=3.51/0.979/q3.9 ermpc_bc=3.62/0.977/q0.9 ermpc_rpi_bc=3.60/0.977/q0.9
+x3 120 chase   self=5.19/0.905/q3.4 det_mpc=4.99/0.901/q2.2 rob_mpc_nc=4.81/0.906/q3.3 rob_mpc_nc_bc=4.73/0.910/q0.6 ermpc=4.96/0.904/q2.3 ermpc_bc=4.88/0.905/q0.4 ermpc_rpi_bc=5.11/0.902/q0.5
+x3 120 stay    self=9.79/0.337/q0.1 det_mpc=5.10/0.898/q2.2 rob_mpc_nc=5.92/0.888/q1.8 rob_mpc_nc_bc=5.94/0.885/q0.4 ermpc=5.67/0.892/q1.7 ermpc_bc=5.59/0.896/q0.5 ermpc_rpi_bc=5.75/0.891/q0.5
+x3 120 hotspot self=4.94/0.903/q2.7 det_mpc=5.11/0.898/q1.9 rob_mpc_nc=5.01/0.904/q1.9 rob_mpc_nc_bc=5.05/0.900/q0.7 ermpc=5.12/0.897/q1.8 ermpc_bc=5.06/0.898/q0.6 ermpc_rpi_bc=5.29/0.899/q0.5
+x2 120 chase   self=3.16/0.992/q1.2 det_mpc=2.53/0.994/q1.0 rob_mpc_nc=2.49/0.995/q1.6 rob_mpc_nc_bc=2.47/0.996/q0.4 ermpc=2.65/0.993/q1.7 ermpc_bc=2.63/0.992/q0.8 ermpc_rpi_bc=2.83/0.989/q0.2
+x2 120 stay    self=9.36/0.481/q0.0 det_mpc=2.63/0.987/q1.5 rob_mpc_nc=3.67/0.971/q1.4 rob_mpc_nc_bc=3.58/0.972/q0.3 ermpc=3.25/0.976/q1.1 ermpc_bc=3.20/0.979/q0.3 ermpc_rpi_bc=3.31/0.976/q0.3
+x2 120 hotspot self=2.82/0.992/q1.8 det_mpc=2.79/0.989/q1.4 rob_mpc_nc=2.75/0.989/q1.8 rob_mpc_nc_bc=2.73/0.988/q0.5 ermpc=2.82/0.987/q1.1 ermpc_bc=2.86/0.987/q0.3 ermpc_rpi_bc=2.96/0.984/q0.3
+
+MAIN: paired differences in mean wait
+x3 160 chase   | rob_mpc_nc-self -0.67±0.17* | ermpc_bc-rob_mpc_nc_bc +0.07±0.10  | ermpc_rpi_bc-ermpc_bc +0.09±0.12  | rob_mpc_nc_bc-rob_mpc_nc -0.19±0.14* | ermpc_bc-ermpc -0.17±0.14*
+x3 160 stay    | rob_mpc_nc-self -5.16±0.27* | ermpc_bc-rob_mpc_nc_bc -0.33±0.31* | ermpc_rpi_bc-ermpc_bc +0.01±0.31  | rob_mpc_nc_bc-rob_mpc_nc -0.07±0.12  | ermpc_bc-ermpc -0.07±0.14 
+x3 160 hotspot | rob_mpc_nc-self +0.02±0.14  | ermpc_bc-rob_mpc_nc_bc +0.04±0.12  | ermpc_rpi_bc-ermpc_bc -0.01±0.09  | rob_mpc_nc_bc-rob_mpc_nc -0.02±0.13  | ermpc_bc-ermpc +0.11±0.13 
+x3 120 chase   | rob_mpc_nc-self -0.39±0.06* | ermpc_bc-rob_mpc_nc_bc +0.16±0.09* | ermpc_rpi_bc-ermpc_bc +0.23±0.11* | rob_mpc_nc_bc-rob_mpc_nc -0.08±0.05* | ermpc_bc-ermpc -0.08±0.11 
+x3 120 stay    | rob_mpc_nc-self -3.86±0.21* | ermpc_bc-rob_mpc_nc_bc -0.35±0.21* | ermpc_rpi_bc-ermpc_bc +0.17±0.20  | rob_mpc_nc_bc-rob_mpc_nc +0.02±0.08  | ermpc_bc-ermpc -0.09±0.11 
+x3 120 hotspot | rob_mpc_nc-self +0.07±0.08  | ermpc_bc-rob_mpc_nc_bc +0.01±0.12  | ermpc_rpi_bc-ermpc_bc +0.23±0.13* | rob_mpc_nc_bc-rob_mpc_nc +0.04±0.08  | ermpc_bc-ermpc -0.06±0.09 
+x2 120 chase   | rob_mpc_nc-self -0.67±0.14* | ermpc_bc-rob_mpc_nc_bc +0.16±0.17  | ermpc_rpi_bc-ermpc_bc +0.20±0.18* | rob_mpc_nc_bc-rob_mpc_nc -0.03±0.16  | ermpc_bc-ermpc -0.02±0.17 
+x2 120 stay    | rob_mpc_nc-self -5.68±0.27* | ermpc_bc-rob_mpc_nc_bc -0.38±0.32* | ermpc_rpi_bc-ermpc_bc +0.11±0.23  | rob_mpc_nc_bc-rob_mpc_nc -0.09±0.11  | ermpc_bc-ermpc -0.05±0.13 
+x2 120 hotspot | rob_mpc_nc-self -0.06±0.14  | ermpc_bc-rob_mpc_nc_bc +0.13±0.16  | ermpc_rpi_bc-ermpc_bc +0.10±0.17  | rob_mpc_nc_bc-rob_mpc_nc -0.02±0.16  | ermpc_bc-ermpc +0.04±0.09 
+
+CHARGING: queue per session (min), fleet queue (veh-h), passenger wait; _bc minus static
+x3 160 chase | rob_mpc_nc_bc: q -4.17±1.97* veh-h -4.58±2.53* wait -0.19±0.14* | ermpc_bc: q -3.12±1.38* veh-h -3.26±1.49* wait -0.17±0.14*
+x3 160 stay  | rob_mpc_nc_bc: q -2.96±1.56* veh-h -2.57±1.36* wait -0.07±0.12  | ermpc_bc: q -4.24±1.87* veh-h -3.81±1.95* wait -0.07±0.14 
+x3 120 chase | rob_mpc_nc_bc: q -2.70±1.44* veh-h -2.96±1.65* wait -0.08±0.05* | ermpc_bc: q -1.82±0.82* veh-h -1.81±0.85* wait -0.08±0.11 
+x3 120 stay  | rob_mpc_nc_bc: q -1.39±0.77* veh-h -1.13±0.58* wait +0.02±0.08  | ermpc_bc: q -1.15±0.88* veh-h -1.02±0.78* wait -0.09±0.11 
+x2 120 chase | rob_mpc_nc_bc: q -1.26±1.02* veh-h -0.85±0.81* wait -0.03±0.16  | ermpc_bc: q -0.90±0.77* veh-h -0.52±0.42* wait -0.02±0.17 
+x2 120 stay  | rob_mpc_nc_bc: q -1.13±1.06* veh-h -0.52±0.55  wait -0.09±0.11  | ermpc_bc: q -0.81±1.08  veh-h -0.44±0.60  wait -0.05±0.13 
+
+MISSPECIFICATION (planner theta = 1.5; robust set from theta in [1.0, 2.5])
+theta_true=0.5 120 chase | ermpc_bc-rob_mpc_nc_bc +0.06±0.08  | ermpc_rpi_bc-ermpc_bc +0.26±0.15* | ermpc_rpi4_bc-ermpc_bc +0.22±0.13*
+theta_true=0.5 120 stay  | ermpc_bc-rob_mpc_nc_bc -0.19±0.27  | ermpc_rpi_bc-ermpc_bc +0.11±0.27  | ermpc_rpi4_bc-ermpc_bc +0.27±0.27*
+theta_true=0.5 160 chase | ermpc_bc-rob_mpc_nc_bc +0.10±0.12  | ermpc_rpi_bc-ermpc_bc -0.05±0.13  | ermpc_rpi4_bc-ermpc_bc -0.04±0.12 
+theta_true=0.5 160 stay  | ermpc_bc-rob_mpc_nc_bc -0.14±0.27  | ermpc_rpi_bc-ermpc_bc -0.18±0.44  | ermpc_rpi4_bc-ermpc_bc -0.30±0.39 
+theta_true=3.0 120 chase | ermpc_bc-rob_mpc_nc_bc +0.02±0.08  | ermpc_rpi_bc-ermpc_bc +0.23±0.12* | ermpc_rpi4_bc-ermpc_bc +0.26±0.14*
+theta_true=3.0 120 stay  | ermpc_bc-rob_mpc_nc_bc -0.20±0.24  | ermpc_rpi_bc-ermpc_bc +0.11±0.24  | ermpc_rpi4_bc-ermpc_bc -0.03±0.29 
+theta_true=3.0 160 chase | ermpc_bc-rob_mpc_nc_bc -0.04±0.14  | ermpc_rpi_bc-ermpc_bc +0.17±0.10* | ermpc_rpi4_bc-ermpc_bc +0.00±0.13 
+theta_true=3.0 160 stay  | ermpc_bc-rob_mpc_nc_bc -0.31±0.30* | ermpc_rpi_bc-ermpc_bc +0.16±0.32  | ermpc_rpi4_bc-ermpc_bc -0.02±0.29 
+
+AV SHARE (x3, 160 vehicles)
+chase rho=0.0 self=4.07 nc=3.58 er=3.63 | er-nc +0.06±0.15  | nc-self -0.49±0.14*
+chase rho=0.3 self=3.99 nc=3.34 er=3.47 | er-nc +0.13±0.17  | nc-self -0.66±0.15*
+chase rho=0.5 self=4.06 nc=3.21 er=3.27 | er-nc +0.07±0.10  | nc-self -0.85±0.14*
+chase rho=0.7 self=4.01 nc=3.31 er=3.34 | er-nc +0.03±0.15  | nc-self -0.70±0.18*
+chase rho=0.9 self=3.95 nc=3.47 er=3.44 | er-nc -0.03±0.14  | nc-self -0.48±0.12*
+stay  rho=0.0 self=9.58 nc=4.61 er=4.32 | er-nc -0.30±0.39  | nc-self -4.97±0.29*
+stay  rho=0.3 self=9.60 nc=4.48 er=4.28 | er-nc -0.20±0.42  | nc-self -5.12±0.30*
+stay  rho=0.5 self=9.62 nc=4.39 er=4.07 | er-nc -0.33±0.31* | nc-self -5.23±0.30*
+stay  rho=0.7 self=9.62 nc=4.58 er=4.29 | er-nc -0.29±0.29  | nc-self -5.05±0.24*
+stay  rho=0.9 self=9.58 nc=4.48 er=4.53 | er-nc +0.05±0.37  | nc-self -5.11±0.24*
+
+SHARE OF STAY-TYPE DRIVERS (x3)
+120 mix0     nc=4.73 er=4.88 | er-nc +0.16±0.09*
+120 mix0.25  nc=4.83 er=4.96 | er-nc +0.13±0.10*
+120 mix0.5   nc=4.87 er=5.09 | er-nc +0.22±0.10*
+120 mix0.75  nc=5.09 er=5.38 | er-nc +0.29±0.16*
+120 mix1     nc=5.94 er=5.59 | er-nc -0.35±0.21*
+160 mix0     nc=3.21 er=3.27 | er-nc +0.07±0.10 
+160 mix0.25  nc=3.33 er=3.27 | er-nc -0.06±0.13 
+160 mix0.5   nc=3.22 er=3.32 | er-nc +0.10±0.10 
+160 mix0.75  nc=3.36 er=3.41 | er-nc +0.05±0.18 
+160 mix1     nc=4.39 er=4.07 | er-nc -0.33±0.31*
+
+PERSISTENT DRIVER PROPENSITY alpha_i ~ N(0, sd^2) (x3, rho = 0.5)
+120 chase sd=0 rob_mpc_nc=4.73 ermpc=4.88 ermpc_pool=4.95 ermpc_ln=4.97 ermpc_or=4.88 | ermpc-rob_mpc_nc +0.16±0.09* | ermpc_pool-rob_mpc_nc +0.22±0.11* | ermpc_ln-rob_mpc_nc +0.25±0.11* | ermpc_or-rob_mpc_nc +0.15±0.10* | ermpc_ln-ermpc_pool +0.03±0.15  | ermpc_or-ermpc_pool -0.07±0.13 
+120 chase sd=1 rob_mpc_nc=4.78 ermpc=4.88 ermpc_pool=4.96 ermpc_ln=4.95 ermpc_or=4.96 | ermpc-rob_mpc_nc +0.10±0.09* | ermpc_pool-rob_mpc_nc +0.18±0.08* | ermpc_ln-rob_mpc_nc +0.17±0.06* | ermpc_or-rob_mpc_nc +0.18±0.10* | ermpc_ln-ermpc_pool -0.01±0.12  | ermpc_or-ermpc_pool -0.00±0.14 
+120 chase sd=2 rob_mpc_nc=4.77 ermpc=4.96 ermpc_pool=4.99 ermpc_ln=4.98 ermpc_or=4.92 | ermpc-rob_mpc_nc +0.19±0.08* | ermpc_pool-rob_mpc_nc +0.22±0.10* | ermpc_ln-rob_mpc_nc +0.21±0.09* | ermpc_or-rob_mpc_nc +0.15±0.07* | ermpc_ln-ermpc_pool -0.01±0.15  | ermpc_or-ermpc_pool -0.07±0.13 
+120 chase sd=3 rob_mpc_nc=4.80 ermpc=5.00 ermpc_pool=4.99 ermpc_ln=5.02 ermpc_or=5.07 | ermpc-rob_mpc_nc +0.19±0.09* | ermpc_pool-rob_mpc_nc +0.19±0.09* | ermpc_ln-rob_mpc_nc +0.22±0.08* | ermpc_or-rob_mpc_nc +0.27±0.09* | ermpc_ln-ermpc_pool +0.03±0.11  | ermpc_or-ermpc_pool +0.08±0.11 
+120 stay  sd=0 rob_mpc_nc=5.94 ermpc=5.59 ermpc_pool=5.65 ermpc_ln=5.78 ermpc_or=5.58 | ermpc-rob_mpc_nc -0.35±0.21* | ermpc_pool-rob_mpc_nc -0.29±0.30  | ermpc_ln-rob_mpc_nc -0.16±0.22  | ermpc_or-rob_mpc_nc -0.36±0.21* | ermpc_ln-ermpc_pool +0.13±0.23  | ermpc_or-ermpc_pool -0.07±0.20 
+120 stay  sd=1 rob_mpc_nc=5.92 ermpc=5.77 ermpc_pool=5.68 ermpc_ln=5.72 ermpc_or=5.63 | ermpc-rob_mpc_nc -0.15±0.24  | ermpc_pool-rob_mpc_nc -0.24±0.25  | ermpc_ln-rob_mpc_nc -0.20±0.24  | ermpc_or-rob_mpc_nc -0.29±0.15* | ermpc_ln-ermpc_pool +0.03±0.24  | ermpc_or-ermpc_pool -0.05±0.25 
+120 stay  sd=2 rob_mpc_nc=5.91 ermpc=5.80 ermpc_pool=5.59 ermpc_ln=5.85 ermpc_or=5.77 | ermpc-rob_mpc_nc -0.11±0.23  | ermpc_pool-rob_mpc_nc -0.32±0.27* | ermpc_ln-rob_mpc_nc -0.06±0.21  | ermpc_or-rob_mpc_nc -0.14±0.26  | ermpc_ln-ermpc_pool +0.26±0.27  | ermpc_or-ermpc_pool +0.17±0.28 
+120 stay  sd=3 rob_mpc_nc=6.10 ermpc=5.70 ermpc_pool=5.85 ermpc_ln=5.79 ermpc_or=5.79 | ermpc-rob_mpc_nc -0.40±0.24* | ermpc_pool-rob_mpc_nc -0.25±0.27  | ermpc_ln-rob_mpc_nc -0.32±0.27* | ermpc_or-rob_mpc_nc -0.31±0.20* | ermpc_ln-ermpc_pool -0.06±0.26  | ermpc_or-ermpc_pool -0.06±0.23 
+160 chase sd=0 rob_mpc_nc=3.21 ermpc=3.27 ermpc_pool=3.42 ermpc_ln=3.35 ermpc_or=3.25 | ermpc-rob_mpc_nc +0.07±0.10  | ermpc_pool-rob_mpc_nc +0.22±0.16* | ermpc_ln-rob_mpc_nc +0.14±0.10* | ermpc_or-rob_mpc_nc +0.04±0.11  | ermpc_ln-ermpc_pool -0.07±0.13  | ermpc_or-ermpc_pool -0.17±0.15*
+160 chase sd=1 rob_mpc_nc=3.36 ermpc=3.36 ermpc_pool=3.33 ermpc_ln=3.45 ermpc_or=3.39 | ermpc-rob_mpc_nc -0.00±0.19  | ermpc_pool-rob_mpc_nc -0.03±0.13  | ermpc_ln-rob_mpc_nc +0.09±0.15  | ermpc_or-rob_mpc_nc +0.03±0.09  | ermpc_ln-ermpc_pool +0.12±0.13  | ermpc_or-ermpc_pool +0.06±0.15 
+160 chase sd=2 rob_mpc_nc=3.27 ermpc=3.39 ermpc_pool=3.39 ermpc_ln=3.47 ermpc_or=3.45 | ermpc-rob_mpc_nc +0.12±0.19  | ermpc_pool-rob_mpc_nc +0.12±0.16  | ermpc_ln-rob_mpc_nc +0.20±0.15* | ermpc_or-rob_mpc_nc +0.18±0.16* | ermpc_ln-ermpc_pool +0.08±0.12  | ermpc_or-ermpc_pool +0.06±0.11 
+160 chase sd=3 rob_mpc_nc=3.23 ermpc=3.33 ermpc_pool=3.43 ermpc_ln=3.43 ermpc_or=3.44 | ermpc-rob_mpc_nc +0.10±0.12  | ermpc_pool-rob_mpc_nc +0.20±0.11* | ermpc_ln-rob_mpc_nc +0.20±0.15* | ermpc_or-rob_mpc_nc +0.21±0.16* | ermpc_ln-ermpc_pool -0.01±0.15  | ermpc_or-ermpc_pool +0.00±0.14 
+160 stay  sd=0 rob_mpc_nc=4.39 ermpc=4.07 ermpc_pool=4.23 ermpc_ln=4.39 ermpc_or=4.08 | ermpc-rob_mpc_nc -0.33±0.31* | ermpc_pool-rob_mpc_nc -0.16±0.43  | ermpc_ln-rob_mpc_nc -0.01±0.38  | ermpc_or-rob_mpc_nc -0.32±0.31* | ermpc_ln-ermpc_pool +0.16±0.37  | ermpc_or-ermpc_pool -0.15±0.31 
+160 stay  sd=1 rob_mpc_nc=4.46 ermpc=4.17 ermpc_pool=4.28 ermpc_ln=4.48 ermpc_or=4.15 | ermpc-rob_mpc_nc -0.30±0.26* | ermpc_pool-rob_mpc_nc -0.19±0.36  | ermpc_ln-rob_mpc_nc +0.02±0.34  | ermpc_or-rob_mpc_nc -0.31±0.29* | ermpc_ln-ermpc_pool +0.20±0.33  | ermpc_or-ermpc_pool -0.13±0.40 
+160 stay  sd=2 rob_mpc_nc=4.74 ermpc=4.28 ermpc_pool=4.20 ermpc_ln=4.30 ermpc_or=4.36 | ermpc-rob_mpc_nc -0.46±0.34* | ermpc_pool-rob_mpc_nc -0.54±0.32* | ermpc_ln-rob_mpc_nc -0.44±0.39* | ermpc_or-rob_mpc_nc -0.39±0.38* | ermpc_ln-ermpc_pool +0.10±0.37  | ermpc_or-ermpc_pool +0.15±0.41 
+160 stay  sd=3 rob_mpc_nc=4.73 ermpc=4.50 ermpc_pool=4.34 ermpc_ln=4.52 ermpc_or=4.47 | ermpc-rob_mpc_nc -0.23±0.36  | ermpc_pool-rob_mpc_nc -0.40±0.36* | ermpc_ln-rob_mpc_nc -0.21±0.35  | ermpc_or-rob_mpc_nc -0.26±0.36  | ermpc_ln-ermpc_pool +0.18±0.25  | ermpc_or-ermpc_pool +0.14±0.32 
+
+COMPLIANCE LEVEL: common logit shift alpha_mean (x3, 160 vehicles, all human)
+chase a=-4 comply=0.02 self=4.07 rob_mpc_nc=3.91 ermpc=3.95 ermpc_pool=4.11 ermpc_ln=4.17 ermpc_or=4.05 | rob_mpc_nc-self -0.15±0.15* | ermpc-rob_mpc_nc +0.04±0.17  | ermpc_pool-rob_mpc_nc +0.20±0.17* | ermpc_ln-rob_mpc_nc +0.26±0.17* | ermpc_or-rob_mpc_nc +0.14±0.17 
+chase a=-3 comply=0.04 self=4.07 rob_mpc_nc=4.02 ermpc=3.90 ermpc_pool=4.10 ermpc_ln=4.24 ermpc_or=4.11 | rob_mpc_nc-self -0.05±0.11  | ermpc-rob_mpc_nc -0.13±0.16  | ermpc_pool-rob_mpc_nc +0.08±0.13  | ermpc_ln-rob_mpc_nc +0.22±0.15* | ermpc_or-rob_mpc_nc +0.08±0.17 
+chase a=-2 comply=0.11 self=4.07 rob_mpc_nc=3.87 ermpc=3.79 ermpc_pool=4.37 ermpc_ln=3.94 ermpc_or=4.40 | rob_mpc_nc-self -0.19±0.13* | ermpc-rob_mpc_nc -0.08±0.14  | ermpc_pool-rob_mpc_nc +0.49±0.14* | ermpc_ln-rob_mpc_nc +0.06±0.14  | ermpc_or-rob_mpc_nc +0.53±0.14*
+chase a=-1 comply=0.24 self=4.07 rob_mpc_nc=3.67 ermpc=3.66 ermpc_pool=3.83 ermpc_ln=3.82 ermpc_or=3.93 | rob_mpc_nc-self -0.39±0.14* | ermpc-rob_mpc_nc -0.01±0.14  | ermpc_pool-rob_mpc_nc +0.16±0.13* | ermpc_ln-rob_mpc_nc +0.14±0.14* | ermpc_or-rob_mpc_nc +0.26±0.22*
+chase a=+0 comply=0.45 self=4.07 rob_mpc_nc=3.58 ermpc=3.63 ermpc_pool=3.62 ermpc_ln=3.60 ermpc_or=3.62 | rob_mpc_nc-self -0.49±0.14* | ermpc-rob_mpc_nc +0.06±0.15  | ermpc_pool-rob_mpc_nc +0.04±0.14  | ermpc_ln-rob_mpc_nc +0.03±0.13  | ermpc_or-rob_mpc_nc +0.04±0.15 
+stay  a=-4 comply=0.02 self=9.58 rob_mpc_nc=8.36 ermpc=8.16 ermpc_pool=8.15 ermpc_ln=7.88 ermpc_or=8.08 | rob_mpc_nc-self -1.21±0.20* | ermpc-rob_mpc_nc -0.21±0.21  | ermpc_pool-rob_mpc_nc -0.21±0.33  | ermpc_ln-rob_mpc_nc -0.49±0.39* | ermpc_or-rob_mpc_nc -0.28±0.32 
+stay  a=-3 comply=0.04 self=9.58 rob_mpc_nc=6.22 ermpc=5.63 ermpc_pool=5.35 ermpc_ln=5.50 ermpc_or=5.43 | rob_mpc_nc-self -3.36±0.19* | ermpc-rob_mpc_nc -0.59±0.32* | ermpc_pool-rob_mpc_nc -0.87±0.23* | ermpc_ln-rob_mpc_nc -0.72±0.29* | ermpc_or-rob_mpc_nc -0.79±0.30*
+stay  a=-2 comply=0.10 self=9.58 rob_mpc_nc=4.77 ermpc=4.38 ermpc_pool=4.21 ermpc_ln=4.44 ermpc_or=4.28 | rob_mpc_nc-self -4.81±0.26* | ermpc-rob_mpc_nc -0.39±0.41  | ermpc_pool-rob_mpc_nc -0.56±0.38* | ermpc_ln-rob_mpc_nc -0.32±0.32* | ermpc_or-rob_mpc_nc -0.49±0.36*
+stay  a=-1 comply=0.21 self=9.58 rob_mpc_nc=4.55 ermpc=4.30 ermpc_pool=4.04 ermpc_ln=4.19 ermpc_or=4.17 | rob_mpc_nc-self -5.03±0.37* | ermpc-rob_mpc_nc -0.25±0.46  | ermpc_pool-rob_mpc_nc -0.51±0.42* | ermpc_ln-rob_mpc_nc -0.35±0.39  | ermpc_or-rob_mpc_nc -0.38±0.39 
+stay  a=+0 comply=0.41 self=9.58 rob_mpc_nc=4.61 ermpc=4.32 ermpc_pool=4.37 ermpc_ln=4.36 ermpc_or=4.32 | rob_mpc_nc-self -4.97±0.29* | ermpc-rob_mpc_nc -0.30±0.39  | ermpc_pool-rob_mpc_nc -0.24±0.42  | ermpc_ln-rob_mpc_nc -0.25±0.35  | ermpc_or-rob_mpc_nc -0.30±0.39 
+
+PERSISTENT DRIVER PROPENSITY alpha_i ~ N(-2, sd^2) (x3, 160 vehicles, all human)
+160 chase sd=0 rob_mpc_nc=3.87 ermpc=3.79 ermpc_pool=4.37 ermpc_ln=3.94 ermpc_or=4.40 | ermpc-rob_mpc_nc -0.08±0.14  | ermpc_pool-rob_mpc_nc +0.49±0.14* | ermpc_ln-rob_mpc_nc +0.06±0.14  | ermpc_or-rob_mpc_nc +0.53±0.14* | ermpc_ln-ermpc_pool -0.43±0.12* | ermpc_or-ermpc_pool +0.04±0.16 
+160 chase sd=1 rob_mpc_nc=3.81 ermpc=3.74 ermpc_pool=4.35 ermpc_ln=3.97 ermpc_or=4.10 | ermpc-rob_mpc_nc -0.07±0.13  | ermpc_pool-rob_mpc_nc +0.54±0.19* | ermpc_ln-rob_mpc_nc +0.15±0.13* | ermpc_or-rob_mpc_nc +0.29±0.17* | ermpc_ln-ermpc_pool -0.38±0.13* | ermpc_or-ermpc_pool -0.25±0.11*
+160 chase sd=2 rob_mpc_nc=3.81 ermpc=3.64 ermpc_pool=4.09 ermpc_ln=3.98 ermpc_or=3.90 | ermpc-rob_mpc_nc -0.17±0.12* | ermpc_pool-rob_mpc_nc +0.27±0.18* | ermpc_ln-rob_mpc_nc +0.16±0.13* | ermpc_or-rob_mpc_nc +0.08±0.15  | ermpc_ln-ermpc_pool -0.11±0.18  | ermpc_or-ermpc_pool -0.19±0.19 
+160 chase sd=3 rob_mpc_nc=3.72 ermpc=3.76 ermpc_pool=3.93 ermpc_ln=3.88 ermpc_or=3.84 | ermpc-rob_mpc_nc +0.04±0.17  | ermpc_pool-rob_mpc_nc +0.21±0.21  | ermpc_ln-rob_mpc_nc +0.16±0.13* | ermpc_or-rob_mpc_nc +0.12±0.15  | ermpc_ln-ermpc_pool -0.05±0.16  | ermpc_or-ermpc_pool -0.09±0.19 
+160 stay  sd=0 rob_mpc_nc=4.77 ermpc=4.38 ermpc_pool=4.21 ermpc_ln=4.44 ermpc_or=4.28 | ermpc-rob_mpc_nc -0.39±0.41  | ermpc_pool-rob_mpc_nc -0.56±0.38* | ermpc_ln-rob_mpc_nc -0.32±0.32* | ermpc_or-rob_mpc_nc -0.49±0.36* | ermpc_ln-ermpc_pool +0.23±0.38  | ermpc_or-ermpc_pool +0.07±0.23 
+160 stay  sd=1 rob_mpc_nc=5.15 ermpc=4.67 ermpc_pool=4.40 ermpc_ln=4.50 ermpc_or=4.41 | ermpc-rob_mpc_nc -0.47±0.36* | ermpc_pool-rob_mpc_nc -0.75±0.37* | ermpc_ln-rob_mpc_nc -0.64±0.30* | ermpc_or-rob_mpc_nc -0.74±0.26* | ermpc_ln-ermpc_pool +0.11±0.30  | ermpc_or-ermpc_pool +0.01±0.31 
+160 stay  sd=2 rob_mpc_nc=5.52 ermpc=4.84 ermpc_pool=4.58 ermpc_ln=4.60 ermpc_or=4.65 | ermpc-rob_mpc_nc -0.67±0.35* | ermpc_pool-rob_mpc_nc -0.93±0.28* | ermpc_ln-rob_mpc_nc -0.92±0.24* | ermpc_or-rob_mpc_nc -0.87±0.35* | ermpc_ln-ermpc_pool +0.02±0.21  | ermpc_or-ermpc_pool +0.06±0.25 
+160 stay  sd=3 rob_mpc_nc=5.50 ermpc=4.94 ermpc_pool=5.02 ermpc_ln=5.15 ermpc_or=5.00 | ermpc-rob_mpc_nc -0.56±0.26* | ermpc_pool-rob_mpc_nc -0.48±0.35* | ermpc_ln-rob_mpc_nc -0.35±0.27* | ermpc_or-rob_mpc_nc -0.50±0.31* | ermpc_ln-ermpc_pool +0.13±0.26  | ermpc_or-ermpc_pool -0.01±0.40 
+
+MULTI-STEP COMPLIANCE: method minus compliance-blind (mean wait, min); learned re-issue rate r
+x3 160 chase   nc=3.21 r=0.29 | ermpc +0.07±0.10  | ermpc_ms +0.10±0.14  | ermpc_msf +0.23±0.13* | ermpc_ms2 +0.12±0.13  | ermpc_ms5 +0.15±0.15* | ms-ermpc +0.03±0.16 
+x3 160 stay    nc=4.39 r=0.37 | ermpc -0.33±0.31* | ermpc_ms -0.01±0.41  | ermpc_msf +0.07±0.32  | ermpc_ms2 -0.11±0.41  | ermpc_ms5 -0.13±0.38  | ms-ermpc +0.32±0.28*
+x3 160 hotspot nc=3.58 r=0.03 | ermpc +0.04±0.12  | ermpc_ms -0.00±0.13  | ermpc_msf -0.05±0.13  | ermpc_ms2 -0.03±0.11  | ermpc_ms5 -0.01±0.14  | ms-ermpc -0.04±0.13 
+x3 120 chase   nc=4.73 r=0.24 | ermpc +0.16±0.09* | ermpc_ms +0.14±0.09* | ermpc_msf +0.08±0.06* | ermpc_ms2 +0.08±0.06* | ermpc_ms5 +0.12±0.05* | ms-ermpc -0.02±0.11 
+x3 120 stay    nc=5.94 r=0.54 | ermpc -0.35±0.21* | ermpc_ms -0.10±0.24  | ermpc_msf -0.03±0.22  | ermpc_ms2 -0.31±0.24* | ermpc_ms5 -0.19±0.30  | ms-ermpc +0.25±0.18*
+x3 120 hotspot nc=5.05 r=0.05 | ermpc +0.01±0.12  | ermpc_ms -0.03±0.10  | ermpc_msf -0.08±0.08* | ermpc_ms2 +0.06±0.11  | ermpc_ms5 -0.00±0.14  | ms-ermpc -0.04±0.11 
+x2 120 chase   nc=2.47 r=0.35 | ermpc +0.16±0.17  | ermpc_ms +0.09±0.15  | ermpc_msf -0.01±0.17  | ermpc_ms2 +0.01±0.15  | ermpc_ms5 +0.05±0.15  | ms-ermpc -0.07±0.16 
+x2 120 stay    nc=3.58 r=0.45 | ermpc -0.38±0.32* | ermpc_ms +0.03±0.24  | ermpc_msf -0.13±0.30  | ermpc_ms2 -0.02±0.31  | ermpc_ms5 -0.09±0.33  | ms-ermpc +0.41±0.28*
+x2 120 hotspot nc=2.73 r=0.06 | ermpc +0.13±0.16  | ermpc_ms +0.21±0.16* | ermpc_msf -0.02±0.13  | ermpc_ms2 +0.16±0.17  | ermpc_ms5 +0.18±0.13* | ms-ermpc +0.07±0.17 
+
+COUNTERFACTUAL: method minus compliance-blind (mean wait); issued human zone orders per run; share of orders equal to the fallback
+-- human drivers without an order: stay
+x3 160 chase   self=4.06 nc=3.26 nc-self -0.80±0.17* | ermpc +0.28±0.21* | ermpc_nofb +1.30±0.32* | ermpc_fbonly +0.20±0.15* | ermpc_flat +1.01±0.28* | orders 2214/892 same 0.46/0.51
+x3 160 stay    self=9.62 nc=4.39 nc-self -5.23±0.30* | ermpc -0.33±0.31* | ermpc_nofb -0.01±0.39  | ermpc_fbonly -0.29±0.34  | ermpc_flat +0.11±0.41  | orders 2365/2322 same 0.89/0.88
+x3 160 hotspot self=3.58 nc=3.43 nc-self -0.15±0.18  | ermpc +0.21±0.14* | ermpc_nofb +0.92±0.25* | ermpc_fbonly +0.10±0.13  | ermpc_flat +0.56±0.19* | orders 2148/1325 same 0.35/0.53
+x3 120 chase   self=5.19 nc=4.78 nc-self -0.41±0.07* | ermpc +0.26±0.13* | ermpc_nofb +0.94±0.20* | ermpc_fbonly +0.07±0.07* | ermpc_flat +0.96±0.18* | orders 1521/622 same 0.33/0.39
+x3 120 stay    self=9.79 nc=5.94 nc-self -3.85±0.21* | ermpc -0.35±0.21* | ermpc_nofb -0.22±0.28  | ermpc_fbonly -0.40±0.24* | ermpc_flat -0.13±0.22  | orders 1853/1790 same 0.88/0.87
+x3 120 hotspot self=4.94 nc=4.99 nc-self +0.04±0.07  | ermpc +0.26±0.14* | ermpc_nofb +0.71±0.19* | ermpc_fbonly -0.04±0.08  | ermpc_flat +0.69±0.19* | orders 1510/958 same 0.34/0.53
+x2 120 chase   self=3.16 nc=2.40 nc-self -0.76±0.16* | ermpc +0.69±0.15* | ermpc_nofb +1.14±0.25* | ermpc_fbonly +0.13±0.11* | ermpc_flat +0.88±0.18* | orders 2342/715 same 0.52/0.69
+x2 120 stay    self=9.36 nc=3.58 nc-self -5.77±0.22* | ermpc -0.38±0.32* | ermpc_nofb -0.22±0.38  | ermpc_fbonly -0.40±0.36* | ermpc_flat -0.00±0.28  | orders 2498/2486 same 0.93/0.92
+x2 120 hotspot self=2.82 nc=2.57 nc-self -0.24±0.15* | ermpc +0.50±0.23* | ermpc_nofb +0.96±0.23* | ermpc_fbonly +0.23±0.10* | ermpc_flat +0.74±0.30* | orders 2261/1109 same 0.37/0.67
+-- human drivers without an order: self
+x3 160 chase   self=4.06 nc=3.21 nc-self -0.85±0.14* | ermpc +0.07±0.10  | ermpc_nofb +0.49±0.16* | ermpc_fbonly +0.29±0.09* | ermpc_flat +0.28±0.12* | orders 2262/1896 same 0.38/0.51
+x3 160 stay    self=9.62 nc=4.39 nc-self -5.23±0.30* | ermpc -0.33±0.31* | ermpc_nofb -0.01±0.39  | ermpc_fbonly -0.29±0.34  | ermpc_flat +0.11±0.41  | orders 2365/2322 same 0.89/0.88
+x3 160 hotspot self=3.58 nc=3.58 nc-self -0.00±0.11  | ermpc +0.04±0.12  | ermpc_nofb +0.36±0.12* | ermpc_fbonly +0.03±0.11  | ermpc_flat +0.30±0.16* | orders 2027/1369 same 0.41/0.57
+x3 120 chase   self=5.19 nc=4.73 nc-self -0.47±0.05* | ermpc +0.16±0.09* | ermpc_nofb +0.64±0.09* | ermpc_fbonly +0.18±0.07* | ermpc_flat +0.55±0.11* | orders 1511/1092 same 0.30/0.42
+x3 120 stay    self=9.79 nc=5.94 nc-self -3.85±0.21* | ermpc -0.35±0.21* | ermpc_nofb -0.22±0.28  | ermpc_fbonly -0.40±0.24* | ermpc_flat -0.13±0.22  | orders 1853/1790 same 0.88/0.87
+x3 120 hotspot self=4.94 nc=5.05 nc-self +0.11±0.06* | ermpc +0.01±0.12  | ermpc_nofb +0.59±0.11* | ermpc_fbonly -0.05±0.09  | ermpc_flat +0.47±0.16* | orders 1472/981 same 0.37/0.55
+x2 120 chase   self=3.16 nc=2.47 nc-self -0.69±0.18* | ermpc +0.16±0.17  | ermpc_nofb +0.39±0.18* | ermpc_fbonly +0.10±0.17  | ermpc_flat +0.42±0.16* | orders 2342/1892 same 0.44/0.55
+x2 120 stay    self=9.36 nc=3.58 nc-self -5.77±0.22* | ermpc -0.38±0.32* | ermpc_nofb -0.22±0.38  | ermpc_fbonly -0.40±0.36* | ermpc_flat -0.00±0.28  | orders 2498/2486 same 0.93/0.92
+x2 120 hotspot self=2.82 nc=2.73 nc-self -0.09±0.16  | ermpc +0.13±0.16  | ermpc_nofb +0.38±0.13* | ermpc_fbonly +0.11±0.13  | ermpc_flat +0.54±0.19* | orders 2149/1295 same 0.43/0.68
+
+COUNTERFACTUAL, SHARE OF STAY-TYPE DRIVERS (idle_humans = self)
+120 mix0.25  ermpc-nc +0.13±0.10*
+120 mix0.5   ermpc-nc +0.22±0.10*
+120 mix0.75  ermpc-nc +0.29±0.16*
+160 mix0.25  ermpc-nc -0.06±0.13 
+160 mix0.5   ermpc-nc +0.10±0.10 
+160 mix0.75  ermpc-nc +0.05±0.18 
+
+DEMAND MARGIN: mean wait; differences m=0 minus m=1 and compliance-aware minus blind at m=0
+x3 160 chase   self=4.06 det_mpc_bc=3.34 nc_m0_bc=3.44 rob_mpc_nc_bc=3.21 naive_plugin_bc=3.37 ermpc_bc=3.27 det_mpc_pi_bc=3.80 | m0-m1 +0.24±0.13* | aware-blind(m0) -0.07±0.12  | det+pi-det +0.45±0.15*
+x3 160 stay    self=9.62 det_mpc_bc=3.65 nc_m0_bc=3.61 rob_mpc_nc_bc=4.39 naive_plugin_bc=3.62 ermpc_bc=4.07 det_mpc_pi_bc=3.51 | m0-m1 -0.78±0.34* | aware-blind(m0) +0.01±0.18  | det+pi-det -0.14±0.15 
+x3 160 hotspot self=3.58 det_mpc_bc=3.65 nc_m0_bc=3.53 rob_mpc_nc_bc=3.58 naive_plugin_bc=3.55 ermpc_bc=3.62 det_mpc_pi_bc=4.00 | m0-m1 -0.05±0.16  | aware-blind(m0) +0.02±0.17  | det+pi-det +0.35±0.13*
+x3 120 chase   self=5.19 det_mpc_bc=4.95 nc_m0_bc=4.84 rob_mpc_nc_bc=4.73 naive_plugin_bc=5.00 ermpc_bc=4.88 det_mpc_pi_bc=5.47 | m0-m1 +0.11±0.07* | aware-blind(m0) +0.16±0.11* | det+pi-det +0.51±0.20*
+x3 120 stay    self=9.79 det_mpc_bc=5.07 nc_m0_bc=5.12 rob_mpc_nc_bc=5.94 naive_plugin_bc=5.12 ermpc_bc=5.59 det_mpc_pi_bc=5.03 | m0-m1 -0.82±0.25* | aware-blind(m0) -0.00±0.13  | det+pi-det -0.04±0.13 
+x3 120 hotspot self=4.94 det_mpc_bc=5.03 nc_m0_bc=4.96 rob_mpc_nc_bc=5.05 naive_plugin_bc=5.08 ermpc_bc=5.06 det_mpc_pi_bc=5.41 | m0-m1 -0.09±0.08* | aware-blind(m0) +0.12±0.12* | det+pi-det +0.38±0.14*
+x2 120 chase   self=3.16 det_mpc_bc=2.57 nc_m0_bc=2.57 rob_mpc_nc_bc=2.47 naive_plugin_bc=2.73 ermpc_bc=2.63 det_mpc_pi_bc=3.12 | m0-m1 +0.10±0.15  | aware-blind(m0) +0.16±0.18  | det+pi-det +0.56±0.16*
+x2 120 stay    self=9.36 det_mpc_bc=2.54 nc_m0_bc=2.53 rob_mpc_nc_bc=3.58 naive_plugin_bc=2.62 ermpc_bc=3.20 det_mpc_pi_bc=2.57 | m0-m1 -1.05±0.27* | aware-blind(m0) +0.09±0.15  | det+pi-det +0.03±0.16 
+x2 120 hotspot self=2.82 det_mpc_bc=2.72 nc_m0_bc=2.69 rob_mpc_nc_bc=2.73 naive_plugin_bc=2.89 ermpc_bc=2.86 det_mpc_pi_bc=3.13 | m0-m1 -0.04±0.13  | aware-blind(m0) +0.20±0.17* | det+pi-det +0.41±0.15*
+
+STATION CHOICE: queue per session (min) self / static / occupancy / backlog; backlog minus static
+4 chargers 160 chase   5.47/4.92/0.76/0.76 | queue -4.17±1.97* | backlog-occupancy +0.00±0.00  | passenger wait -0.19±0.14*
+4 chargers 160 stay    0.13/3.77/0.81/0.81 | queue -2.96±1.56* | backlog-occupancy +0.00±0.00  | passenger wait -0.07±0.12 
+4 chargers 160 hotspot 5.39/4.15/1.13/1.13 | queue -3.02±1.27* | backlog-occupancy +0.00±0.00  | passenger wait -0.02±0.13 
+4 chargers 120 chase   3.35/3.32/0.62/0.62 | queue -2.70±1.44* | backlog-occupancy +0.00±0.00  | passenger wait -0.08±0.05*
+4 chargers 120 stay    0.14/1.77/0.38/0.38 | queue -1.39±0.77* | backlog-occupancy +0.00±0.00  | passenger wait +0.02±0.08 
+4 chargers 120 hotspot 2.69/1.91/0.65/0.65 | queue -1.26±0.83* | backlog-occupancy +0.00±0.00  | passenger wait +0.04±0.08 
+3 chargers 160 chase   15.57/11.43/1.77/1.77 | queue -9.66±3.35* | backlog-occupancy +0.00±0.00  | passenger wait -0.14±0.11*
+3 chargers 160 stay    0.62/8.93/1.77/1.77 | queue -7.16±1.94* | backlog-occupancy +0.00±0.00  | passenger wait -0.07±0.12 
+3 chargers 160 hotspot 15.29/10.44/2.14/2.14 | queue -8.30±1.71* | backlog-occupancy +0.00±0.00  | passenger wait -0.00±0.16 
+3 chargers 120 chase   10.17/9.24/1.39/1.39 | queue -7.85±3.25* | backlog-occupancy +0.00±0.00  | passenger wait -0.06±0.05*
+3 chargers 120 stay    0.50/7.19/1.35/1.35 | queue -5.84±2.20* | backlog-occupancy +0.00±0.00  | passenger wait +0.00±0.09 
+3 chargers 120 hotspot 8.68/7.38/1.52/1.52 | queue -5.86±2.49* | backlog-occupancy +0.00±0.00  | passenger wait +0.02±0.08 
+2 chargers 160 chase   41.30/23.50/4.68/4.62 | queue -18.88±5.36* | backlog-occupancy -0.07±0.12  | passenger wait -0.19±0.11*
+2 chargers 160 stay    6.13/19.49/4.24/4.11 | queue -15.38±2.21* | backlog-occupancy -0.13±0.15  | passenger wait -0.08±0.12 
+2 chargers 160 hotspot 35.05/23.23/5.87/5.71 | queue -17.52±3.04* | backlog-occupancy -0.16±0.26  | passenger wait -0.16±0.12*
+2 chargers 120 chase   31.53/26.57/4.01/3.90 | queue -22.68±4.29* | backlog-occupancy -0.11±0.17  | passenger wait -0.10±0.06*
+2 chargers 120 stay    3.16/21.49/3.74/3.74 | queue -17.75±3.30* | backlog-occupancy +0.00±0.00  | passenger wait -0.03±0.08 
+2 chargers 120 hotspot 28.68/25.83/3.65/3.55 | queue -22.28±4.30* | backlog-occupancy -0.09±0.16  | passenger wait -0.05±0.10 

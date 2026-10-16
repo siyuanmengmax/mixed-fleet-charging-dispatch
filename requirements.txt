@@ -1,0 +1,9 @@
+# Tested with Python 3.11
+numpy==1.26.4
+scipy==1.14.0
+matplotlib==3.9.1
+pulp==3.3.0
+gurobipy==13.0.1
+# only for rebuilding the network distances (chicago_loop/data/network/build_od.py)
+networkx==3.3
+sumolib>=1.20

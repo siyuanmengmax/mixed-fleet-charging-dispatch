@@ -1,0 +1,457 @@
+{
+  "network": {
+    "file": "chicago_loop.net.xml",
+    "n_junctions": 1008,
+    "bbox_sumo": {
+      "x_min": 0.0,
+      "x_max": 2249.2,
+      "y_min": 0.0,
+      "y_max": 2642.5
+    },
+    "orig_boundary": "-87.640499,41.866010,-87.613343,41.889789"
+  },
+  "grid": {
+    "lon_min": -87.640499,
+    "lat_min": 41.86601,
+    "lon_step": 0.006789,
+    "lat_step": 0.005945,
+    "n_cols": 4,
+    "n_rows": 4
+  },
+  "demand_zones": [
+    {
+      "zone_id": "Z01",
+      "name": "Union Station",
+      "lon": -87.6371,
+      "lat": 41.869,
+      "sumo_x": 277.63,
+      "sumo_y": 342.38,
+      "node_id": "415475477",
+      "node_x": 191.99,
+      "node_y": 428.78,
+      "snap_dist_m": 121.7
+    },
+    {
+      "zone_id": "Z02",
+      "name": "Printer's Row",
+      "lon": -87.6303,
+      "lat": 41.869,
+      "sumo_x": 841.95,
+      "sumo_y": 338.21,
+      "node_id": "704695415",
+      "node_x": 818.95,
+      "node_y": 342.19,
+      "snap_dist_m": 23.3
+    },
+    {
+      "zone_id": "Z03",
+      "name": "Museum Campus N",
+      "lon": -87.6235,
+      "lat": 41.869,
+      "sumo_x": 1406.27,
+      "sumo_y": 334.09,
+      "node_id": "4334657998",
+      "node_x": 1361.48,
+      "node_y": 329.47,
+      "snap_dist_m": 45.0
+    },
+    {
+      "zone_id": "Z04",
+      "name": "Grant Park S",
+      "lon": -87.6167,
+      "lat": 41.869,
+      "sumo_x": 1970.58,
+      "sumo_y": 330.02,
+      "node_id": "4334660272",
+      "node_x": 1867.62,
+      "node_y": 290.05,
+      "snap_dist_m": 110.4
+    },
+    {
+      "zone_id": "Z05",
+      "name": "Near West / Canal",
+      "lon": -87.6371,
+      "lat": 41.8749,
+      "sumo_x": 282.49,
+      "sumo_y": 997.44,
+      "node_id": "261121575",
+      "node_x": 301.11,
+      "node_y": 946.39,
+      "snap_dist_m": 54.3
+    },
+    {
+      "zone_id": "Z06",
+      "name": "LaSalle / Adams",
+      "lon": -87.6303,
+      "lat": 41.8749,
+      "sumo_x": 846.76,
+      "sumo_y": 993.27,
+      "node_id": "4322806048",
+      "node_x": 848.63,
+      "node_y": 951.46,
+      "snap_dist_m": 41.9
+    },
+    {
+      "zone_id": "Z07",
+      "name": "State / Jackson",
+      "lon": -87.6235,
+      "lat": 41.8749,
+      "sumo_x": 1411.02,
+      "sumo_y": 989.15,
+      "node_id": "10220109768",
+      "node_x": 1398.53,
+      "node_y": 990.62,
+      "snap_dist_m": 12.6
+    },
+    {
+      "zone_id": "Z08",
+      "name": "Michigan Ave S",
+      "lon": -87.6167,
+      "lat": 41.8749,
+      "sumo_x": 1975.29,
+      "sumo_y": 985.08,
+      "node_id": "9430307857",
+      "node_x": 1943.5,
+      "node_y": 836.21,
+      "snap_dist_m": 152.2
+    },
+    {
+      "zone_id": "Z09",
+      "name": "Ogilvie-Metra",
+      "lon": -87.6371,
+      "lat": 41.8809,
+      "sumo_x": 287.44,
+      "sumo_y": 1663.6,
+      "node_id": "619040194",
+      "node_x": 295.71,
+      "node_y": 1633.23,
+      "snap_dist_m": 31.5
+    },
+    {
+      "zone_id": "Z10",
+      "name": "Daley Plaza",
+      "lon": -87.6303,
+      "lat": 41.8809,
+      "sumo_x": 851.65,
+      "sumo_y": 1659.44,
+      "node_id": "8145232365",
+      "node_x": 806.67,
+      "node_y": 1678.37,
+      "snap_dist_m": 48.8
+    },
+    {
+      "zone_id": "Z11",
+      "name": "Block 37",
+      "lon": -87.6235,
+      "lat": 41.8809,
+      "sumo_x": 1415.86,
+      "sumo_y": 1655.32,
+      "node_id": "2432386058",
+      "node_x": 1419.02,
+      "node_y": 1649.36,
+      "snap_dist_m": 6.7
+    },
+    {
+      "zone_id": "Z12",
+      "name": "Millennium Park",
+      "lon": -87.6167,
+      "lat": 41.8809,
+      "sumo_x": 1980.08,
+      "sumo_y": 1651.24,
+      "node_id": "cluster_26098113_739120275",
+      "node_x": 1924.1,
+      "node_y": 1653.99,
+      "snap_dist_m": 56.0
+    },
+    {
+      "zone_id": "Z13",
+      "name": "River North W",
+      "lon": -87.6371,
+      "lat": 41.8868,
+      "sumo_x": 292.3,
+      "sumo_y": 2318.66,
+      "node_id": "704972447",
+      "node_x": 328.27,
+      "node_y": 2248.0,
+      "snap_dist_m": 79.3
+    },
+    {
+      "zone_id": "Z14",
+      "name": "Merchandise Mart",
+      "lon": -87.6303,
+      "lat": 41.8868,
+      "sumo_x": 856.46,
+      "sumo_y": 2314.5,
+      "node_id": "4334600809",
+      "node_x": 857.37,
+      "node_y": 2316.88,
+      "snap_dist_m": 2.5
+    },
+    {
+      "zone_id": "Z15",
+      "name": "River North E",
+      "lon": -87.6235,
+      "lat": 41.8868,
+      "sumo_x": 1420.62,
+      "sumo_y": 2310.38,
+      "node_id": "1386043179",
+      "node_x": 1406.28,
+      "node_y": 2312.77,
+      "snap_dist_m": 14.5
+    },
+    {
+      "zone_id": "Z16",
+      "name": "Navy Pier Approach",
+      "lon": -87.6167,
+      "lat": 41.8868,
+      "sumo_x": 1984.78,
+      "sumo_y": 2306.3,
+      "node_id": "12798728929",
+      "node_x": 2010.55,
+      "node_y": 2321.53,
+      "snap_dist_m": 29.9
+    }
+  ],
+  "charging_stations": [
+    {
+      "station_id": "cs_1",
+      "name": "Millennium Park Garage",
+      "lon": -87.6215,
+      "lat": 41.882,
+      "sumo_x": 1582.69,
+      "sumo_y": 1776.24,
+      "node_id": "1827936181",
+      "node_x": 1638.47,
+      "node_y": 1793.54,
+      "snap_dist_m": 58.4,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_2",
+      "name": "Theater District Garage",
+      "lon": -87.6295,
+      "lat": 41.8815,
+      "sumo_x": 918.52,
+      "sumo_y": 1725.57,
+      "node_id": "2391003236",
+      "node_x": 928.41,
+      "node_y": 1710.27,
+      "snap_dist_m": 18.2,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_3",
+      "name": "River North Parking",
+      "lon": -87.6355,
+      "lat": 41.8872,
+      "sumo_x": 425.37,
+      "sumo_y": 2362.09,
+      "node_id": "6991230838",
+      "node_x": 419.22,
+      "node_y": 2351.09,
+      "snap_dist_m": 12.6,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_4",
+      "name": "Wacker-Lower Level",
+      "lon": -87.6275,
+      "lat": 41.8862,
+      "sumo_x": 1088.28,
+      "sumo_y": 2246.18,
+      "node_id": "258957342",
+      "node_x": 1051.75,
+      "node_y": 2197.0,
+      "snap_dist_m": 61.3,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_5",
+      "name": "Financial District (N)",
+      "lon": -87.633,
+      "lat": 41.881,
+      "sumo_x": 627.71,
+      "sumo_y": 1672.19,
+      "node_id": "9643227719",
+      "node_x": 638.79,
+      "node_y": 1636.3,
+      "snap_dist_m": 37.6,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_6",
+      "name": "Financial District (S)",
+      "lon": -87.6325,
+      "lat": 41.876,
+      "sumo_x": 665.1,
+      "sumo_y": 1116.75,
+      "node_id": "4497342631",
+      "node_x": 615.82,
+      "node_y": 1093.87,
+      "snap_dist_m": 54.3,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_7",
+      "name": "Grant Park Garage",
+      "lon": -87.6195,
+      "lat": 41.876,
+      "sumo_x": 1743.83,
+      "sumo_y": 1108.88,
+      "node_id": "740237223",
+      "node_x": 1650.42,
+      "node_y": 1104.78,
+      "snap_dist_m": 93.5,
+      "piles": 4,
+      "power_kw": 50.0
+    },
+    {
+      "station_id": "cs_8",
+      "name": "Union Station Garage",
+      "lon": -87.6408,
+      "lat": 41.8778,
+      "sumo_x": -22.13,
+      "sumo_y": 1321.7,
+      "node_id": "4382806378",
+      "node_x": 80.4,
+      "node_y": 1327.1,
+      "snap_dist_m": 102.7,
+      "piles": 4,
+      "power_kw": 50.0
+    }
+  ],
+  "zone_nodes": {
+    "Z01": "415475477",
+    "Z02": "704695415",
+    "Z03": "4334657998",
+    "Z04": "4334660272",
+    "Z05": "261121575",
+    "Z06": "4322806048",
+    "Z07": "10220109768",
+    "Z08": "9430307857",
+    "Z09": "619040194",
+    "Z10": "8145232365",
+    "Z11": "2432386058",
+    "Z12": "cluster_26098113_739120275",
+    "Z13": "704972447",
+    "Z14": "4334600809",
+    "Z15": "1386043179",
+    "Z16": "12798728929"
+  },
+  "station_nodes": {
+    "cs_1": "1827936181",
+    "cs_2": "2391003236",
+    "cs_3": "6991230838",
+    "cs_4": "258957342",
+    "cs_5": "9643227719",
+    "cs_6": "4497342631",
+    "cs_7": "740237223",
+    "cs_8": "4382806378"
+  },
+  "zone_coords": {
+    "Z01": {
+      "x": 191.99,
+      "y": 428.78
+    },
+    "Z02": {
+      "x": 818.95,
+      "y": 342.19
+    },
+    "Z03": {
+      "x": 1361.48,
+      "y": 329.47
+    },
+    "Z04": {
+      "x": 1867.62,
+      "y": 290.05
+    },
+    "Z05": {
+      "x": 301.11,
+      "y": 946.39
+    },
+    "Z06": {
+      "x": 848.63,
+      "y": 951.46
+    },
+    "Z07": {
+      "x": 1398.53,
+      "y": 990.62
+    },
+    "Z08": {
+      "x": 1943.5,
+      "y": 836.21
+    },
+    "Z09": {
+      "x": 295.71,
+      "y": 1633.23
+    },
+    "Z10": {
+      "x": 806.67,
+      "y": 1678.37
+    },
+    "Z11": {
+      "x": 1419.02,
+      "y": 1649.36
+    },
+    "Z12": {
+      "x": 1924.1,
+      "y": 1653.99
+    },
+    "Z13": {
+      "x": 328.27,
+      "y": 2248.0
+    },
+    "Z14": {
+      "x": 857.37,
+      "y": 2316.88
+    },
+    "Z15": {
+      "x": 1406.28,
+      "y": 2312.77
+    },
+    "Z16": {
+      "x": 2010.55,
+      "y": 2321.53
+    }
+  },
+  "station_coords": {
+    "cs_1": {
+      "x": 1638.47,
+      "y": 1793.54
+    },
+    "cs_2": {
+      "x": 928.41,
+      "y": 1710.27
+    },
+    "cs_3": {
+      "x": 419.22,
+      "y": 2351.09
+    },
+    "cs_4": {
+      "x": 1051.75,
+      "y": 2197.0
+    },
+    "cs_5": {
+      "x": 638.79,
+      "y": 1636.3
+    },
+    "cs_6": {
+      "x": 615.82,
+      "y": 1093.87
+    },
+    "cs_7": {
+      "x": 1650.42,
+      "y": 1104.78
+    },
+    "cs_8": {
+      "x": 80.4,
+      "y": 1327.1
+    }
+  }
+}
