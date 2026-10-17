@@ -234,34 +234,34 @@ x2 2ch 120 chase   3.34/2.57/2.41/2.52/2.61/2.54/2.54/2.53/2.53/2.53 | -0.04±0.
 x2 2ch 120 stay    9.36/3.69/3.59/3.62/3.59/3.60/3.60/3.59/3.59/3.60 | -0.09±0.14  +0.01±0.07  +0.00±0.02  +0.01±0.02 
 x2 2ch 120 hotspot 3.09/2.80/2.73/2.78/2.78/2.77/2.77/2.78/2.78/2.74 | -0.06±0.10  +0.01±0.11  -0.02±0.05  -0.03±0.04 
 
-STATION CHOICE: fleet queue (veh-h) static / static+mc / backlog / sequential; deterministic MPC queue static -> backlog; backlog minus occupancy-only (queue)
-x3 4ch 160 chase   veh-h 5.4/0.1/0.8/0.4 | det 4.89 -> 0.71 | bc-bo +0.00±0.00 
-x3 4ch 160 stay    veh-h 3.2/0.0/0.6/0.4 | det 3.47 -> 0.80 | bc-bo +0.00±0.00 
-x3 4ch 160 hotspot veh-h 4.8/0.1/1.1/0.5 | det 3.28 -> 0.85 | bc-bo +0.00±0.00 
-x3 4ch 120 chase   veh-h 3.6/0.0/0.6/0.4 | det 2.19 -> 0.41 | bc-bo +0.00±0.00 
-x3 4ch 120 stay    veh-h 1.4/0.1/0.3/0.2 | det 2.21 -> 0.52 | bc-bo +0.00±0.00 
-x3 4ch 120 hotspot veh-h 1.9/0.1/0.7/0.4 | det 1.91 -> 0.43 | bc-bo +0.00±0.00 
-x3 3ch 160 chase   veh-h 13.0/0.4/1.8/1.1 | det 11.12 -> 1.40 | bc-bo +0.00±0.00 
-x3 3ch 160 stay    veh-h 7.3/0.2/1.4/0.9 | det 8.66 -> 1.87 | bc-bo +0.00±0.00 
-x3 3ch 160 hotspot veh-h 11.6/0.3/2.1/1.8 | det 8.51 -> 1.64 | bc-bo +0.00±0.00 
-x3 3ch 120 chase   veh-h 10.0/0.3/1.5/1.0 | det 8.03 -> 1.28 | bc-bo +0.00±0.00 
-x3 3ch 120 stay    veh-h 6.2/0.2/1.1/0.8 | det 8.55 -> 1.14 | bc-bo +0.00±0.00 
-x3 3ch 120 hotspot veh-h 7.6/0.2/1.5/1.1 | det 7.52 -> 1.52 | bc-bo +0.00±0.00 
-x3 2ch 160 chase   veh-h 27.3/2.3/4.8/3.0 | det 23.76 -> 4.76 | bc-bo -0.07±0.12 
-x3 2ch 160 stay    veh-h 16.9/1.4/3.2/2.1 | det 19.40 -> 4.79 | bc-bo -0.13±0.15 
-x3 2ch 160 hotspot veh-h 27.4/2.9/5.9/4.0 | det 22.02 -> 4.94 | bc-bo -0.16±0.26 
-x3 2ch 120 chase   veh-h 28.9/0.9/4.0/2.7 | det 23.72 -> 3.50 | bc-bo -0.11±0.17 
-x3 2ch 120 stay    veh-h 19.9/1.1/3.0/2.0 | det 22.46 -> 3.61 | bc-bo +0.00±0.00 
-x3 2ch 120 hotspot veh-h 27.4/1.1/3.6/2.9 | det 25.89 -> 3.90 | bc-bo -0.09±0.16 
-x2 4ch 120 chase   veh-h 1.1/0.0/0.2/0.1 | det 1.01 -> 0.25 | bc-bo +0.00±0.00 
-x2 4ch 120 stay    veh-h 0.6/0.0/0.1/0.1 | det 1.46 -> 0.42 | bc-bo +0.00±0.00 
-x2 4ch 120 hotspot veh-h 1.1/0.0/0.4/0.3 | det 1.41 -> 0.44 | bc-bo +0.00±0.00 
-x2 3ch 120 chase   veh-h 3.9/0.1/0.6/0.5 | det 4.10 -> 0.68 | bc-bo +0.00±0.00 
-x2 3ch 120 stay    veh-h 1.8/0.0/0.4/0.3 | det 4.15 -> 1.25 | bc-bo +0.00±0.00 
-x2 3ch 120 hotspot veh-h 3.2/0.1/0.5/0.3 | det 3.44 -> 0.81 | bc-bo +0.00±0.00 
-x2 2ch 120 chase   veh-h 10.2/0.7/1.5/1.0 | det 13.88 -> 2.47 | bc-bo -0.03±0.06 
-x2 2ch 120 stay    veh-h 4.5/0.4/0.9/0.6 | det 10.83 -> 3.07 | bc-bo +0.00±0.00 
-x2 2ch 120 hotspot veh-h 8.7/0.6/1.5/1.0 | det 10.95 -> 2.64 | bc-bo +0.00±0.00 
+STATION CHOICE: fleet queue (veh-h) static / static+mc / backlog / sequential; deterministic MPC queue static -> backlog; backlog minus occupancy-only (queue); backlog minus nearest idle charger (queue); sequential minus capacity over one session (drive + queue)
+x3 4ch 160 chase   veh-h 5.4/0.1/0.8/0.4 | det 4.89 -> 0.71 | bc-bo +0.00±0.00  | bc-na +0.02±0.09  | bs-sh (d+q) -1.22±0.34*
+x3 4ch 160 stay    veh-h 3.2/0.0/0.6/0.4 | det 3.47 -> 0.80 | bc-bo +0.00±0.00  | bc-na -0.04±0.14  | bs-sh (d+q) -1.31±0.41*
+x3 4ch 160 hotspot veh-h 4.8/0.1/1.1/0.5 | det 3.28 -> 0.85 | bc-bo +0.00±0.00  | bc-na +0.15±0.17  | bs-sh (d+q) -1.32±0.34*
+x3 4ch 120 chase   veh-h 3.6/0.0/0.6/0.4 | det 2.19 -> 0.41 | bc-bo +0.00±0.00  | bc-na +0.02±0.12  | bs-sh (d+q) -0.70±0.26*
+x3 4ch 120 stay    veh-h 1.4/0.1/0.3/0.2 | det 2.21 -> 0.52 | bc-bo +0.00±0.00  | bc-na -0.03±0.05  | bs-sh (d+q) -0.83±0.27*
+x3 4ch 120 hotspot veh-h 1.9/0.1/0.7/0.4 | det 1.91 -> 0.43 | bc-bo +0.00±0.00  | bc-na +0.12±0.13  | bs-sh (d+q) -0.68±0.26*
+x3 3ch 160 chase   veh-h 13.0/0.4/1.8/1.1 | det 11.12 -> 1.40 | bc-bo +0.00±0.00  | bc-na +0.04±0.29  | bs-sh (d+q) -1.78±0.49*
+x3 3ch 160 stay    veh-h 7.3/0.2/1.4/0.9 | det 8.66 -> 1.87 | bc-bo +0.00±0.00  | bc-na +0.02±0.08  | bs-sh (d+q) -1.35±0.57*
+x3 3ch 160 hotspot veh-h 11.6/0.3/2.1/1.8 | det 8.51 -> 1.64 | bc-bo +0.00±0.00  | bc-na +0.17±0.42  | bs-sh (d+q) -0.97±0.64*
+x3 3ch 120 chase   veh-h 10.0/0.3/1.5/1.0 | det 8.03 -> 1.28 | bc-bo +0.00±0.00  | bc-na -0.03±0.16  | bs-sh (d+q) -1.47±0.31*
+x3 3ch 120 stay    veh-h 6.2/0.2/1.1/0.8 | det 8.55 -> 1.14 | bc-bo +0.00±0.00  | bc-na +0.03±0.18  | bs-sh (d+q) -1.10±0.38*
+x3 3ch 120 hotspot veh-h 7.6/0.2/1.5/1.1 | det 7.52 -> 1.52 | bc-bo +0.00±0.00  | bc-na +0.07±0.19  | bs-sh (d+q) -1.00±0.36*
+x3 2ch 160 chase   veh-h 27.3/2.3/4.8/3.0 | det 23.76 -> 4.76 | bc-bo -0.07±0.12  | bc-na -0.15±0.71  | bs-sh (d+q) -1.35±0.49*
+x3 2ch 160 stay    veh-h 16.9/1.4/3.2/2.1 | det 19.40 -> 4.79 | bc-bo -0.13±0.15  | bc-na +0.04±0.36  | bs-sh (d+q) -1.16±0.70*
+x3 2ch 160 hotspot veh-h 27.4/2.9/5.9/4.0 | det 22.02 -> 4.94 | bc-bo -0.16±0.26  | bc-na -0.06±0.39  | bs-sh (d+q) -0.61±0.74 
+x3 2ch 120 chase   veh-h 28.9/0.9/4.0/2.7 | det 23.72 -> 3.50 | bc-bo -0.11±0.17  | bc-na -0.32±0.37  | bs-sh (d+q) -1.10±0.60*
+x3 2ch 120 stay    veh-h 19.9/1.1/3.0/2.0 | det 22.46 -> 3.61 | bc-bo +0.00±0.00  | bc-na -0.04±0.45  | bs-sh (d+q) -1.65±0.81*
+x3 2ch 120 hotspot veh-h 27.4/1.1/3.6/2.9 | det 25.89 -> 3.90 | bc-bo -0.09±0.16  | bc-na +0.20±0.46  | bs-sh (d+q) -0.63±0.76 
+x2 4ch 120 chase   veh-h 1.1/0.0/0.2/0.1 | det 1.01 -> 0.25 | bc-bo +0.00±0.00  | bc-na -0.01±0.02  | bs-sh (d+q) -0.57±0.27*
+x2 4ch 120 stay    veh-h 0.6/0.0/0.1/0.1 | det 1.46 -> 0.42 | bc-bo +0.00±0.00  | bc-na +0.05±0.11  | bs-sh (d+q) -0.57±0.33*
+x2 4ch 120 hotspot veh-h 1.1/0.0/0.4/0.3 | det 1.41 -> 0.44 | bc-bo +0.00±0.00  | bc-na +0.04±0.07  | bs-sh (d+q) -0.74±0.32*
+x2 3ch 120 chase   veh-h 3.9/0.1/0.6/0.5 | det 4.10 -> 0.68 | bc-bo +0.00±0.00  | bc-na +0.01±0.02  | bs-sh (d+q) -0.89±0.53*
+x2 3ch 120 stay    veh-h 1.8/0.0/0.4/0.3 | det 4.15 -> 1.25 | bc-bo +0.00±0.00  | bc-na +0.06±0.15  | bs-sh (d+q) -0.74±0.41*
+x2 3ch 120 hotspot veh-h 3.2/0.1/0.5/0.3 | det 3.44 -> 0.81 | bc-bo +0.00±0.00  | bc-na -0.02±0.14  | bs-sh (d+q) -1.14±0.53*
+x2 2ch 120 chase   veh-h 10.2/0.7/1.5/1.0 | det 13.88 -> 2.47 | bc-bo -0.03±0.06  | bc-na -0.04±0.26  | bs-sh (d+q) -1.45±0.55*
+x2 2ch 120 stay    veh-h 4.5/0.4/0.9/0.6 | det 10.83 -> 3.07 | bc-bo +0.00±0.00  | bc-na -0.15±0.38  | bs-sh (d+q) -1.46±0.62*
+x2 2ch 120 hotspot veh-h 8.7/0.6/1.5/1.0 | det 10.95 -> 2.64 | bc-bo +0.00±0.00  | bc-na -0.12±0.26  | bs-sh (d+q) -1.15±0.41*
 
 sequential backlog runs: session 39.4 min (range 31.5-43.2), sessions per shift 15-71, share of fleet time to station, queued or charging 0.007-0.035
 
@@ -279,8 +279,63 @@ AV SHARE AND STATION CHOICE (x3, chase): queue / drive + queue per session for n
 2ch 120 rho=0.5 3.90/6.17 2.75/5.05 0.91/4.04 4.22/6.55 | +1.01±0.81*
 2ch 120 rho=1 1.78/4.07 0.09/2.41 0.00/3.82 2.13/4.48 | -1.41±0.16*
 
+SEQUENTIAL UPDATE ABLATION: drive + queue per session nc_bc / nc_bf / nc_bs; nc_bf minus nc_bc; nc_bs minus nc_bf; steps per shift with >= 2 must-charge vehicles in the batch, and their share of the must-charge vehicles
+x3 4ch 160 chase   2.53/2.53/2.19 | +0.00±0.00  -0.35±0.16* | 13.5 0.58
+x3 4ch 160 stay    2.63/2.63/2.36 | +0.00±0.00  -0.27±0.18* | 10.3 0.60
+x3 4ch 160 hotspot 2.91/2.91/2.34 | +0.00±0.00  -0.57±0.28* | 12.8 0.56
+x3 4ch 120 chase   2.33/2.33/2.08 | +0.00±0.00  -0.24±0.14* | 13.3 0.54
+x3 4ch 120 stay    2.09/2.09/2.02 | +0.00±0.00  -0.07±0.08  | 10.8 0.53
+x3 4ch 120 hotspot 2.32/2.32/2.09 | +0.00±0.00  -0.23±0.16* | 12.9 0.54
+x3 3ch 160 chase   3.77/3.77/3.10 | +0.00±0.00  -0.67±0.33* | 13.2 0.58
+x3 3ch 160 stay    3.77/3.77/3.32 | +0.00±0.00  -0.45±0.43* | 10.4 0.60
+x3 3ch 160 hotspot 4.17/4.17/3.84 | +0.00±0.00  -0.32±0.38  | 12.7 0.56
+x3 3ch 120 chase   3.25/3.25/2.80 | +0.00±0.00  -0.44±0.41* | 13.4 0.55
+x3 3ch 120 stay    3.22/3.22/2.86 | +0.00±0.00  -0.37±0.31* | 9.8 0.48
+x3 3ch 120 hotspot 3.37/3.37/2.92 | +0.00±0.00  -0.44±0.31* | 12.8 0.53
+x3 2ch 160 chase   7.09/7.09/5.45 | +0.00±0.00  -1.64±0.77* | 13.0 0.56
+x3 2ch 160 stay    6.68/6.68/5.31 | +0.00±0.00  -1.37±0.53* | 9.7 0.58
+x3 2ch 160 hotspot 8.27/8.27/6.51 | +0.00±0.00  -1.76±0.67* | 12.3 0.55
+x3 2ch 120 chase   6.17/6.17/5.05 | +0.00±0.00  -1.12±0.75* | 12.8 0.52
+x3 2ch 120 stay    5.98/5.98/4.72 | +0.00±0.00  -1.26±0.64* | 10.0 0.49
+x3 2ch 120 hotspot 5.86/5.86/5.13 | +0.00±0.00  -0.73±1.09  | 12.7 0.52
+x2 4ch 120 chase   2.05/2.05/1.90 | +0.00±0.00  -0.14±0.11* | 6.5 0.45
+x2 4ch 120 stay    1.92/1.92/1.85 | +0.00±0.00  -0.07±0.09  | 4.2 0.45
+x2 4ch 120 hotspot 2.24/2.24/2.05 | +0.00±0.00  -0.19±0.17* | 6.7 0.46
+x2 3ch 120 chase   2.84/2.84/2.68 | +0.00±0.00  -0.16±0.17  | 6.4 0.45
+x2 3ch 120 stay    2.73/2.73/2.49 | +0.00±0.00  -0.24±0.21* | 4.0 0.43
+x2 3ch 120 hotspot 2.63/2.63/2.26 | +0.00±0.00  -0.37±0.26* | 6.2 0.43
+x2 2ch 120 chase   4.58/4.58/3.86 | +0.00±0.00  -0.72±0.40* | 6.4 0.47
+x2 2ch 120 stay    3.84/3.84/3.48 | +0.00±0.00  -0.36±0.27* | 3.8 0.42
+x2 2ch 120 hotspot 4.46/4.46/3.67 | +0.00±0.00  -0.79±0.51* | 6.2 0.44
+
+COMPLIANCE-AWARE STATION CHOICE (x3, 50% AV): drive + queue per session nc_bs / ca_bc / ca_bs; ca_bs minus ca_bc; ca_bs minus nc_bs (drive + queue, passenger wait)
+x3 4ch 160 chase   2.19/2.37/2.16 | -0.21±0.16* | -0.03±0.18  +0.06±0.09 
+x3 4ch 160 stay    2.36/2.66/2.43 | -0.23±0.29  | +0.07±0.48  -0.33±0.31*
+x3 4ch 160 hotspot 2.34/2.73/2.41 | -0.33±0.21* | +0.07±0.29  +0.02±0.11 
+x3 4ch 120 chase   2.08/2.10/1.98 | -0.12±0.09* | -0.10±0.19  +0.15±0.10*
+x3 4ch 120 stay    2.02/2.21/2.15 | -0.06±0.15  | +0.13±0.42  -0.35±0.21*
+x3 4ch 120 hotspot 2.09/2.25/2.14 | -0.11±0.10* | +0.05±0.20  +0.03±0.12 
+x3 2ch 160 chase   5.45/6.82/5.87 | -0.95±0.49* | +0.42±0.65  +0.10±0.11 
+x3 2ch 160 stay    5.31/7.01/5.57 | -1.44±0.78* | +0.26±1.00  -0.26±0.37 
+x3 2ch 160 hotspot 6.51/7.56/6.19 | -1.37±0.62* | -0.32±1.33  +0.14±0.10*
+x3 2ch 120 chase   5.05/6.05/4.62 | -1.43±0.55* | -0.43±0.82  +0.12±0.09*
+x3 2ch 120 stay    4.72/5.53/4.68 | -0.85±0.58* | -0.04±1.13  -0.33±0.24*
+x3 2ch 120 hotspot 5.13/5.69/4.94 | -0.74±0.42* | -0.19±0.74  +0.01±0.12 
+
+ORDER ACCEPTANCE (x3, 50% AV, 2 or 4 chargers): per kappa and chargers, means over 6 settings of the share of human orders followed (nc_bs), the h_own share of human sessions and of queue minutes (nc_bs), queue / drive + queue for nc_bc / nc_bs / nc_sm / nc_na, and the settings in which nc_bs is better / worse than nc_sm and nc_na (drive + queue, paired 95%)
+kappa=0 4ch followed 0.45 h_own 0.52/0.99 | 0.72/2.47 0.42/2.18 0.05/3.22 0.69/2.46 | vs sm 6/0 | vs na 5/0
+kappa=0 2ch followed 0.45 h_own 0.54/0.93 | 4.27/6.67 2.93/5.36 1.67/4.91 4.33/6.80 | vs sm 0/1 | vs na 5/0
+kappa=1 4ch followed 0.67 h_own 0.28/0.96 | 0.49/2.24 0.22/1.98 0.01/3.46 0.47/2.25 | vs sm 6/0 | vs na 6/0
+kappa=1 2ch followed 0.67 h_own 0.30/0.89 | 3.17/5.63 1.51/4.05 0.94/4.43 3.17/5.70 | vs sm 3/0 | vs na 6/0
+kappa=2 4ch followed 0.83 h_own 0.14/0.86 | 0.44/2.19 0.12/1.88 0.00/3.66 0.38/2.16 | vs sm 6/0 | vs na 6/0
+kappa=2 2ch followed 0.83 h_own 0.15/0.69 | 2.52/4.98 0.78/3.31 0.40/4.09 2.83/5.37 | vs sm 6/0 | vs na 6/0
+kappa=3 4ch followed 0.93 h_own 0.07/0.75 | 0.36/2.11 0.06/1.83 0.00/3.71 0.33/2.10 | vs sm 6/0 | vs na 6/0
+kappa=3 2ch followed 0.93 h_own 0.07/0.42 | 2.31/4.78 0.50/3.09 0.29/4.06 2.45/5.00 | vs sm 6/0 | vs na 6/0
+
 QUEUE BY STATION SOURCE (x3, 50% AV, 12 settings with 2 or 4 chargers, pooled sessions)
 rob_mpc_nc_bs   h_own share of human sessions 0.529, of queue minutes 0.939; queue av+h_follow / h_own: 4ch 0.00 / 1.60 2ch 0.29 / 9.98
 rob_mpc_nc_sm   h_own share of human sessions 0.578, of queue minutes 0.950; queue av+h_follow / h_own: 4ch 0.00 / 0.19 2ch 0.13 / 5.49
 rob_mpc_nc_bc   h_own share of human sessions 0.531, of queue minutes 0.680; queue av+h_follow / h_own: 4ch 0.33 / 1.91 2ch 1.97 / 10.55
 rob_mpc_nc_na   h_own share of human sessions 0.522, of queue minutes 0.646; queue av+h_follow / h_own: 4ch 0.30 / 1.80 2ch 2.21 / 10.47
+ermpc_bs        h_own share of human sessions 0.528, of queue minutes 0.915; queue av+h_follow / h_own: 4ch 0.01 / 1.75 2ch 0.40 / 9.83
+ermpc_bc        h_own share of human sessions 0.530, of queue minutes 0.696; queue av+h_follow / h_own: 4ch 0.27 / 1.75 2ch 1.75 / 10.49

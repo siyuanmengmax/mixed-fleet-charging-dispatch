@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-runs every experiment of the paper (about 1.5 h with 30 worker processes on a 32-thread
+# Re-runs every experiment of the paper (about 2 h with 30 worker processes on a 32-thread
 # desktop CPU). Each command writes chicago_loop/results/<tag>_<timestamp>.json.
 set -e
 R="python -m chicago_loop.experiments.run_eval --seeds 20 --workers ${WORKERS:-30} --idle_humans self"
@@ -24,6 +24,13 @@ $R --methods rob_mpc_nc_bs --demand_k 3 --fleet 120 160 --deviation chase stay h
 $R --methods rob_mpc_nc_bs --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_bs_k2
 $R --methods $S4 --demand_k 3 --fleet 120 160 --av_rates 0 1 --deviation chase --piles 2 4 --tag st_av
 $R --methods $S4 --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_diag
+# Ablation of the sequential update, compliance-aware station choice, and higher order acceptance
+BF="rob_mpc_nc_bc rob_mpc_nc_bf rob_mpc_nc_bs"
+$R --methods $BF --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_bf_k3
+$R --methods $BF --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_bf_k2
+$R --methods ermpc_bc ermpc_bs --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_ca
+$R --methods rob_mpc_nc_bc rob_mpc_nc_bs rob_mpc_nc_sm rob_mpc_nc_na --demand_k 3 --fleet 120 160 --deviation chase stay hotspot \
+   --piles 2 4 --alpha_mean 1 2 3 --tag st_acc
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix

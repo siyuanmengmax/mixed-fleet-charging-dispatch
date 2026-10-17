@@ -21,7 +21,7 @@ plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.titlesize": 8
 OUT = Path("figures")
 C = {"chase": "#56B4E9", "hotspot": "#E69F00", "stay": "#D55E00", 120: "#009E73", 160: "#0072B2"}
 SETTINGS = [(3, 160), (3, 120), (2, 120)]
-LABEL = {"chase": "Chase current requests", "hotspot": "Return to favourite zone", "stay": "Stay in place"}
+LABEL = {"chase": "Chase current requests", "hotspot": "Return to favorite zone", "stay": "Stay in place"}
 
 
 def fig_fallback(R):
@@ -87,7 +87,7 @@ def fig_mechanism(R):
                           for dv in ("chase", "hotspot", "stay")])
             ax.bar(np.arange(3) + (k - 1.5) * w, mu, w, yerr=h, color=c, label=lab, error_kw=dict(lw=0.6, capsize=1.5))
         ax.axhline(0, color="k", lw=0.5)
-        ax.set_xticks(range(3), ["Chase current\nrequests", "Return to\nfavourite zone", "Stay in\nplace"])
+        ax.set_xticks(range(3), ["Chase current\nrequests", "Return to\nfavorite zone", "Stay in\nplace"])
         ax.set_title(title)
     axes[0].set_ylabel("Change in mean wait (min)")
     fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc="upper center", ncol=4)

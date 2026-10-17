@@ -35,7 +35,7 @@ logging.disable(logging.INFO)
 MAX_BATCH = 40          # vehicles per MILP (size-limited Gurobi license: 2,000 variables)
 THETA_RANGE = (1.0, 2.5)  # behavioural uncertainty behind the compliance uncertainty set
 OPT = dict(solver="gurobi", time_limit=10.0, mip_gap=0.02)
-STATION_SUFFIX = {"_bc": "wait", "_bs": "wait_seq", "_bh": "wait_seq_h", "_bo": "wait", "_sm": "static_mc", "_sh": "horizon", "_nr": "nearest",
+STATION_SUFFIX = {"_bc": "wait", "_bs": "wait_seq", "_bf": "wait_fix", "_bh": "wait_seq_h", "_bo": "wait", "_sm": "static_mc", "_sh": "horizon", "_nr": "nearest",
                   "_na": "available", "_sq": "queue"}
 
 
@@ -48,7 +48,7 @@ def make_opt(method, idle_humans="stay"):
     does the same with a wait predicted from the vehicles at the station only (no vehicles en route).
     Station-choice baselines (STATION_SUFFIX): "_sm" the one-interval capacity constraint with every
     vehicle that must charge assigned a station, "_sh" capacity over one full session, "_nr" nearest
-    station, "_na" nearest station with an idle charger, "_sq" shortest-queue estimate; "_bs" is the
+    station, "_na" nearest station with an idle charger, "_sq" shortest-queue estimate; "_bf" fixes the per-vehicle argmin before the solve without the sequential update; "_bs" is the
     backlog wait with the vehicles of one step assigned sequentially, "_bh" the same with human
     drivers sent first to the station they would choose themselves. Without a
     suffix, vehicles that the capacity constraint leaves without a station drive to the nearest one.
@@ -183,7 +183,7 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
     pop_pi = {}             # vid -> population (pi_zone, pi_station) of its last planned orders
     ms = parse_ms(method)
     dg = dict(n_h=0, same=0, move=0, pi=0.0, tt=0.0, n_av=0, move_av=0)   # zone orders actually issued
-    cap = dict(steps=0, capped=0, mc=0, mc_out=0)   # dispatch steps; steps over MAX_BATCH; vehicles that must charge
+    cap = dict(steps=0, capped=0, mc=0, mc_out=0, multi_steps=0, mc_multi=0)   # dispatch steps; steps over MAX_BATCH; vehicles that must charge; steps with >= 2 of them in the batch
     reissue = [1.0, 1.0]    # Beta(1, 1) counts: refused zone orders re-issued at the next epoch / not
     refused_prev = set()    # human drivers who refused a zone order at the previous epoch
     batch_rng = np.random.default_rng(seed + 7919)
@@ -207,6 +207,10 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
                 mc = [v.vid for v in vac if env._must_charge(v)]
                 cap["mc"] += len(mc)
                 cap["mc_out"] += sum(1 for vid in mc if vid not in ids)
+                n_in = sum(1 for vid in mc if vid in ids)     # must-charge vehicles assigned together
+                if n_in >= 2:
+                    cap["multi_steps"] += 1
+                    cap["mc_multi"] += n_in
                 for vid in refused_prev:
                     reissue[0 if vid in ids else 1] += 1.0
                 refused_prev = set()
@@ -293,7 +297,8 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
              diag_move_av=dg["move_av"] / max(1, dg["n_av"]), diag_n_orders_h=dg["n_h"],
              solve_s=round(solve_s, 1), n_dispatch_steps=cap["steps"],
              share_steps_capped=cap["capped"] / max(1, cap["steps"]), n_must_charge=cap["mc"],
-             n_must_charge_unbatched=cap["mc_out"], reissue_rate=reissue[0] / sum(reissue) if ms is not None else None)
+             n_must_charge_unbatched=cap["mc_out"],
+             n_steps_multi_charge=cap["multi_steps"], n_must_charge_multi=cap["mc_multi"], reissue_rate=reissue[0] / sum(reissue) if ms is not None else None)
     return m
 
 

@@ -52,12 +52,14 @@ logger = logging.getLogger(__name__)
 #   wait       predicted wait from replaying the backlog (StationState.predicted_wait)
 #   wait_seq   the same, with the vehicles that must charge in this step assigned one at a time
 #              (nearest first), each added to the backlog of its station before the next is assigned
+#   wait_fix   ablation of wait_seq: each vehicle's station is fixed before the solve by the same
+#              argmin, but without adding it to the backlog (isolates the sequential update)
 #   wait_seq_h the same, but human drivers are assigned first, each to the station he would choose
 #              himself (the nearest), and the AVs are then assigned around them
 #   nearest    nearest station (w = 0)
 #   available  nearest station with an idle charger, otherwise the nearest station
 #   queue      shortest-queue estimate w = max(0, n_s + 1 − N_s)·H/N_s from the vehicle count only
-STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_seq_h", "nearest", "available", "queue")
+STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_fix", "wait_seq_h", "nearest", "available", "queue")
 
 
 # ---------------------------------------------------------------------------
@@ -372,7 +374,7 @@ class ERMPCOptimizer:
         # Sequential station choice: fix the station of each vehicle that must charge in turn and
         # add it to that station's backlog, so later vehicles of the same step see it.
         seq_station = {}
-        if self.station_rule.startswith("wait_seq") and s_ids:
+        if self.station_rule in ("wait_seq", "wait_seq_h", "wait_fix") and s_ids:
             tts = inp.travel_time_to_station
             humans_first = self.station_rule == "wait_seq_h"
             is_h = lambda i: humans_first and v_map[i].vehicle_type != VehicleType.AV
@@ -385,6 +387,8 @@ class ERMPCOptimizer:
                     best = min(s_ids, key=lambda s: self.beta * e_tau(i, s, station=True)
                                + self.charge_wait_weight * e_wait(i, s))
                 seq_station[i] = best
+                if self.station_rule == "wait_fix":
+                    continue
                 # with compliance coefficients, a human driver joins the backlog of the station he
                 # most likely drives to (the order, or his fallback station)
                 a = inp.compliance_coeffs.get(i, {}).get("self_action")
