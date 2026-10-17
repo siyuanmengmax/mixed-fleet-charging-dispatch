@@ -305,6 +305,25 @@ def fix_table():
               + f" | {np.mean([r['n_steps_multi_charge'] for r in bs]):.1f} {share:.2f}")
 
 
+def joint_table():
+    """Exact joint assignment (nc_bj) and assignment order (nc_br random, nc_bl lowest SOC first)
+    against the sequential rule, nearest first (nc_bs)."""
+    R = _with_total(load("st_bj_k3") + load("st_bj_k2"))
+    if not R:
+        return
+    print("\nJOINT ASSIGNMENT AND ORDER: queue / drive + queue per session nc_bs / nc_bj / nc_br / nc_bl; "
+          "nc_bj, nc_br, nc_bl minus nc_bs (drive + queue); share of steps with >= 2 must-charge vehicles "
+          "in which the joint assignment differed from the sequential one")
+    for name, sel in _settings(R):
+        bj = [r for r in R if r["method"] == "rob_mpc_nc_bj" and all(r[k] == v for k, v in sel.items())]
+        diff = sum(r["joint_differs"] for r in bj) / max(1, sum(r["joint_steps"] for r in bj))
+        print(f"{name} " + " ".join(f"{mean(R, m, 'charge_wait_min', **sel):.2f}/{mean(R, m, 'to_charger_min', **sel):.2f}"
+                                     for m in ("rob_mpc_nc_bs", "rob_mpc_nc_bj", "rob_mpc_nc_br", "rob_mpc_nc_bl"))
+              + " | " + " ".join(fmt(*paired(R, m, "rob_mpc_nc_bs", "to_charger_min", **sel))
+                                 for m in ("rob_mpc_nc_bj", "rob_mpc_nc_br", "rob_mpc_nc_bl"))
+              + f" | {diff:.2f}")
+
+
 def aware_table():
     """Compliance-aware station choice (ermpc_bs: a human driver who will likely ignore the order joins
     the backlog of his own station) against ermpc_bc and the compliance-blind sequential rule."""
@@ -390,6 +409,7 @@ if __name__ == "__main__":
     margin_table()
     station_table()
     fix_table()
+    joint_table()
     aware_table()
     acceptance_table()
     source_table()

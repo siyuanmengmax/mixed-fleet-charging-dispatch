@@ -62,6 +62,8 @@ Every method sees the same demand realization and the same compliance draws for 
 | suffix `_bs` | Predicted backlog wait, vehicles assigned sequentially (the proposed rule) |
 | suffix `_bc` / `_bo` | Predicted backlog wait per vehicle, with / without the vehicles en route |
 | suffix `_bf` | Ablation: stations fixed before the solve by the per-vehicle argmin, without the sequential update |
+| suffix `_bj` | Exact joint assignment of the vehicles that must charge in one step (dynamic programming over subsets) |
+| suffix `_br` / `_bl` | Sequential rule with random order / lowest SOC first |
 | suffix `_sm` / `_sh` | Capacity constraint that gives every vehicle that must charge a station / capacity over one session |
 | suffix `_nr` / `_na` / `_sq` | Nearest station / nearest station with an idle charger / shortest estimated queue |
 

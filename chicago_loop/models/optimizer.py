@@ -24,7 +24,9 @@ vehicle's own charging time q_i limits the stations.
 from __future__ import annotations
 
 import time
+import copy
 import logging
+import random
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -54,12 +56,17 @@ logger = logging.getLogger(__name__)
 #              (nearest first), each added to the backlog of its station before the next is assigned
 #   wait_fix   ablation of wait_seq: each vehicle's station is fixed before the solve by the same
 #              argmin, but without adding it to the backlog (isolates the sequential update)
+#   wait_seq_rand / wait_seq_soc  wait_seq with the vehicles in random order / lowest SOC first
+#   wait_joint the vehicles that must charge in this step are assigned jointly: the assignment that
+#              minimizes the sum of β·τ_is + γ_w·w_is, with the waits replayed for all of them
+#              together, found exactly by dynamic programming over subsets (up to JOINT_MAX vehicles)
 #   wait_seq_h the same, but human drivers are assigned first, each to the station he would choose
 #              himself (the nearest), and the AVs are then assigned around them
 #   nearest    nearest station (w = 0)
 #   available  nearest station with an idle charger, otherwise the nearest station
 #   queue      shortest-queue estimate w = max(0, n_s + 1 − N_s)·H/N_s from the vehicle count only
-STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_fix", "wait_seq_h", "nearest", "available", "queue")
+JOINT_MAX = 12   # larger groups (never observed) fall back to the sequential rule
+STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_fix", "wait_seq_rand", "wait_seq_soc", "wait_joint", "wait_seq_h", "nearest", "available", "queue")
 
 
 # ---------------------------------------------------------------------------
@@ -199,6 +206,8 @@ class ERMPCOptimizer:
         assert self.station_rule in STATION_RULES, self.station_rule
         self.static_charge_cap = self.station_rule in ("static", "static_mc", "horizon")
         self.must_charge = self.station_rule != "static"
+        self._order_rng = random.Random(0)          # assignment order of wait_seq_rand
+        self.joint_stats = dict(steps=0, differs=0, fallback=0)  # wait_joint: steps with >= 2 vehicles
         self.solver = solver
         self.time_limit = time_limit
         self.mip_gap = mip_gap
@@ -240,6 +249,52 @@ class ERMPCOptimizer:
     # Main solve
     # ------------------------------------------------------------------
 
+    def _joint_assign(self, must, s_ids, s_map, tts, v_map):
+        """Exact joint station assignment of the vehicles that must charge in one step.
+
+        The cost of a set of vehicles at a station depends only on that set: its members are replayed
+        through the backlog in order of arrival. A dynamic program over subsets then gives the
+        assignment with the least total cost, sum of β·τ_is + γ_w·w_is (O(|S| 3^n))."""
+        n = len(must)
+        if n > JOINT_MAX:
+            self.joint_stats["fallback"] += 1
+            return None
+        full = (1 << n) - 1
+        cost = {}
+        for s in s_ids:
+            for mask in range(1, full + 1):
+                st = copy.copy(s_map[s])
+                st.committed = list(st.committed)
+                c = 0.0
+                for eta, k in sorted((tts.get((must[k], s), 0.0), k) for k in range(n) if mask >> k & 1):
+                    c += self.beta * eta + self.charge_wait_weight * st.predicted_wait(eta)
+                    st.committed.append((eta, v_map[must[k]].nominal_charge_duration_min()))
+                cost[s, mask] = c
+        f = {0: (0.0, None)}                      # covered set -> (cost, back pointer)
+        layers = []
+        for s in s_ids:
+            g = {}
+            for mask in range(full + 1):
+                best = (f[mask][0], 0) if mask in f else (float("inf"), 0)
+                sub = mask
+                while sub:
+                    rest = mask ^ sub
+                    if rest in f and f[rest][0] + cost[s, sub] < best[0]:
+                        best = (f[rest][0] + cost[s, sub], sub)
+                    sub = (sub - 1) & mask
+                if best[0] < float("inf"):
+                    g[mask] = best
+            layers.append((s, g))
+            f = g
+        out, mask = {}, full
+        for s, g in reversed(layers):
+            sub = g[mask][1]
+            for k in range(n):
+                if sub >> k & 1:
+                    out[must[k]] = s
+            mask ^= sub
+        return out
+
     def solve(self, inp: DispatchInput) -> DispatchResult:
         t0 = time.time()
 
@@ -256,7 +311,7 @@ class ERMPCOptimizer:
 
         v_map = {v.vehicle_id: v for v in vehicles}
         s_map = {s.station_id: s for s in stations}
-        if self.station_rule.startswith("wait_seq"):  # the sequential assignment extends copies of the backlogs
+        if self.station_rule.startswith(("wait_seq", "wait_joint")):  # extend copies of the backlogs
             import copy
             s_map = {k: copy.deepcopy(st) for k, st in s_map.items()}
 
@@ -374,12 +429,19 @@ class ERMPCOptimizer:
         # Sequential station choice: fix the station of each vehicle that must charge in turn and
         # add it to that station's backlog, so later vehicles of the same step see it.
         seq_station = {}
-        if self.station_rule in ("wait_seq", "wait_seq_h", "wait_fix") and s_ids:
+        if self.station_rule.startswith(("wait_seq", "wait_fix", "wait_joint")) and s_ids:
             tts = inp.travel_time_to_station
             humans_first = self.station_rule == "wait_seq_h"
             is_h = lambda i: humans_first and v_map[i].vehicle_type != VehicleType.AV
             must = sorted((i for i in v_ids if v_map[i].soc < SOC_THRESHOLD_),
                           key=lambda i: (not is_h(i), min(tts.get((i, s), 0.0) for s in s_ids)))
+            if self.station_rule == "wait_seq_rand":
+                self._order_rng.shuffle(must)
+            elif self.station_rule == "wait_seq_soc":
+                must.sort(key=lambda i: v_map[i].soc)
+            joint = None
+            if self.station_rule == "wait_joint" and len(must) >= 2:
+                joint = self._joint_assign(must, s_ids, s_map, tts, v_map)
             for i in must:
                 if is_h(i):
                     best = min(s_ids, key=lambda s: tts.get((i, s), 0.0))
@@ -395,6 +457,10 @@ class ERMPCOptimizer:
                 dest = (a.station_id if isinstance(a, ChargeAction) and pi_ij(i, best, station=True) < 0.5
                         else best)
                 s_map[dest].committed.append((tts.get((i, dest), 0.0), v_map[i].nominal_charge_duration_min()))
+            if joint is not None:
+                self.joint_stats["steps"] += 1
+                self.joint_stats["differs"] += any(joint[i] != seq_station[i] for i in must)
+                seq_station.update(joint)
 
         reposition_cost = self.beta * pulp.lpSum(
             e_tau(i, j) * x[(i, j)]

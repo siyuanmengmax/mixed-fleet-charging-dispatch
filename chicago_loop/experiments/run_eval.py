@@ -35,7 +35,7 @@ logging.disable(logging.INFO)
 MAX_BATCH = 40          # vehicles per MILP (size-limited Gurobi license: 2,000 variables)
 THETA_RANGE = (1.0, 2.5)  # behavioural uncertainty behind the compliance uncertainty set
 OPT = dict(solver="gurobi", time_limit=10.0, mip_gap=0.02)
-STATION_SUFFIX = {"_bc": "wait", "_bs": "wait_seq", "_bf": "wait_fix", "_bh": "wait_seq_h", "_bo": "wait", "_sm": "static_mc", "_sh": "horizon", "_nr": "nearest",
+STATION_SUFFIX = {"_bc": "wait", "_bs": "wait_seq", "_bf": "wait_fix", "_bj": "wait_joint", "_br": "wait_seq_rand", "_bl": "wait_seq_soc", "_bh": "wait_seq_h", "_bo": "wait", "_sm": "static_mc", "_sh": "horizon", "_nr": "nearest",
                   "_na": "available", "_sq": "queue"}
 
 
@@ -50,7 +50,8 @@ def make_opt(method, idle_humans="stay"):
     vehicle that must charge assigned a station, "_sh" capacity over one full session, "_nr" nearest
     station, "_na" nearest station with an idle charger, "_sq" shortest-queue estimate; "_bf" fixes the per-vehicle argmin before the solve without the sequential update; "_bs" is the
     backlog wait with the vehicles of one step assigned sequentially, "_bh" the same with human
-    drivers sent first to the station they would choose themselves. Without a
+    drivers sent first to the station they would choose themselves; "_br" and "_bl" assign the
+    vehicles in random order and lowest SOC first, and "_bj" assigns them jointly (exact). Without a
     suffix, vehicles that the capacity constraint leaves without a station drive to the nearest one.
     Driver heterogeneity (run_one): ermpc_pool estimates one common compliance intercept online,
     ermpc_ln one intercept per driver, ermpc_or uses the true per-driver propensity (oracle).
@@ -298,7 +299,9 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
              solve_s=round(solve_s, 1), n_dispatch_steps=cap["steps"],
              share_steps_capped=cap["capped"] / max(1, cap["steps"]), n_must_charge=cap["mc"],
              n_must_charge_unbatched=cap["mc_out"],
-             n_steps_multi_charge=cap["multi_steps"], n_must_charge_multi=cap["mc_multi"], reissue_rate=reissue[0] / sum(reissue) if ms is not None else None)
+             n_steps_multi_charge=cap["multi_steps"], n_must_charge_multi=cap["mc_multi"],
+             joint_steps=getattr(opt, "joint_stats", {}).get("steps"), joint_differs=getattr(opt, "joint_stats", {}).get("differs"),
+             joint_fallback=getattr(opt, "joint_stats", {}).get("fallback"), reissue_rate=reissue[0] / sum(reissue) if ms is not None else None)
     return m
 
 
