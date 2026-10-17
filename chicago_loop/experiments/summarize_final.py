@@ -25,6 +25,21 @@ def load(tag):
     return json.load(open(files[-1])) if files else []
 
 
+KEY = ("method", "seed", "demand_k", "fleet_size", "piles", "deviation", "av_rate", "alpha_mean", "alpha_sd")
+
+
+def loads(*tags):
+    """Concatenate several result files of the same design, dropping duplicated runs."""
+    seen, out = set(), []
+    for t in tags:
+        for r in load(t):
+            k = tuple(r.get(x) for x in KEY)
+            if k not in seen:
+                seen.add(k)
+                out.append(r)
+    return out
+
+
 def paired(R, a, b, key="wait_all_min", **sel):
     x = {r["seed"]: r[key] for r in R if r["method"] == a and all(r.get(k) == v for k, v in sel.items())}
     y = {r["seed"]: r[key] for r in R if r["method"] == b and all(r.get(k) == v for k, v in sel.items())}
@@ -213,7 +228,8 @@ def margin_table():
 
 
 STATION = ["self", "rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_sh", "rob_mpc_nc_nr", "rob_mpc_nc_na",
-           "rob_mpc_nc_sq", "rob_mpc_nc_bo", "rob_mpc_nc_bc", "rob_mpc_nc_bs"]
+           "rob_mpc_nc_sq", "rob_mpc_nc_bo", "rob_mpc_nc_bc", "rob_mpc_nc_bs", "rob_mpc_nc_bj"]
+MAIN = "rob_mpc_nc_bj"     # proposed station rule: joint assignment of the vehicles of one step
 SHORT = lambda m: m.replace("rob_mpc_nc", "nc")
 
 
@@ -240,10 +256,10 @@ def _settings(R):
 
 def station_table():
     """Station-choice rules by chargers per station (st_* runs, compliance-blind MPC with m = 1)."""
-    R = _with_total(load("st_k3") + load("st_k2") + load("st_bs_k3") + load("st_bs_k2"))
+    R = _with_total(loads("st_k3", "st_k2", "st_bs_k3", "st_bs_k2", "st_bj_k3", "st_bj_k2"))
     if not R:
         return
-    ref, others = "rob_mpc_nc_bs", ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_na", "rob_mpc_nc_bc")
+    ref, others = MAIN, ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_na", "rob_mpc_nc_bc", "rob_mpc_nc_bs")
     for key, title in (("charge_wait_min", "queue per session (min)"),
                        ("to_charger_min", "drive + queue per session (min)"),
                        ("wait_all_min", "mean passenger wait (min)")):
@@ -252,38 +268,40 @@ def station_table():
         for lab, sel in _settings(R):
             print(lab + " " + "/".join(f"{mean(R, m, key, **sel):.2f}" for m in STATION) + " |"
                   + "".join(f" {fmt(*paired(R, ref, b, key, **sel))}" for b in others))
-    print("\nSTATION CHOICE: fleet queue (veh-h) static / static+mc / backlog / sequential;"
-          " deterministic MPC queue static -> backlog; backlog minus occupancy-only (queue); backlog minus nearest idle charger (queue); sequential minus capacity over one session (drive + queue)")
+    print("\nSTATION CHOICE: fleet queue (veh-h) static / static+mc / backlog / sequential / joint;"
+          " deterministic MPC queue static -> backlog; backlog minus occupancy-only (queue); backlog minus nearest idle charger (queue); joint minus capacity over one session (drive + queue)")
     for lab, sel in _settings(R):
-        vh = [mean(R, m, "veh_h_queue", **sel) for m in ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_bc", ref)]
+        vh = [mean(R, m, "veh_h_queue", **sel) for m in ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_bs", ref)]
         print(lab + " veh-h " + "/".join(f"{x:.1f}" for x in vh)
               + f" | det {mean(R, 'det_mpc', 'charge_wait_min', **sel):.2f} -> "
                 f"{mean(R, 'det_mpc_bc', 'charge_wait_min', **sel):.2f}"
               + f" | bc-bo {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc_bo', 'charge_wait_min', **sel))}"
               + f" | bc-na {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc_na', 'charge_wait_min', **sel))}"
-              + f" | bs-sh (d+q) {fmt(*paired(R, ref, 'rob_mpc_nc_sh', 'to_charger_min', **sel))}")
+              + f" | bj-sh (d+q) {fmt(*paired(R, ref, 'rob_mpc_nc_sh', 'to_charger_min', **sel))}")
     bs = [r for r in R if r["method"] == ref and r["n_charges"]]
     dur = [r["veh_h_charging"] * 60 / r["n_charges"] for r in bs]
-    print(f"\nsequential backlog runs: session {np.mean(dur):.1f} min (range {min(dur):.1f}-{max(dur):.1f}), "
+    print(f"\njoint backlog runs: session {np.mean(dur):.1f} min (range {min(dur):.1f}-{max(dur):.1f}), "
           f"sessions per shift {min(r['n_charges'] for r in bs)}-{max(r['n_charges'] for r in bs)}, "
           f"share of fleet time to station, queued or charging {min(r['share_charging_total'] for r in bs):.3f}-"
           f"{max(r['share_charging_total'] for r in bs):.3f}")
 
-    A = _with_total(load("st_av"))
+    A = _with_total(loads("st_av", "st_av_bj"))
     if not A:
         return
+    av_rules = ("rob_mpc_nc_bc", "rob_mpc_nc_bs", ref, "rob_mpc_nc_sm", "rob_mpc_nc_na")
     A += [r for r in R if r["av_rate"] == 0.5 and r["demand_k"] == 3.0 and r["deviation"] == "chase"
-          and r["piles"] in (2, 4) and r["method"] in ("rob_mpc_nc_bc", "rob_mpc_nc_sm", "rob_mpc_nc_na", ref)]
+          and r["piles"] in (2, 4) and r["method"] in av_rules]
     print("\nAV SHARE AND STATION CHOICE (x3, chase): queue / drive + queue per session for "
-          "nc_bc / nc_bs / nc_sm / nc_na; nc_bs minus nc_sm (drive + queue)")
+          "nc_bc / nc_bs / nc_bj / nc_sm / nc_na; nc_bj minus nc_sm, nc_bj minus nc_bs (drive + queue)")
     for pl in (4, 2):
         for f in (160, 120):
             for a in (0.0, 0.5, 1.0):
                 sel = dict(av_rate=a, piles=pl, fleet_size=f)
                 row = f"{pl}ch {f} rho={a:g} "
                 row += " ".join(f"{mean(A, m, 'charge_wait_min', **sel):.2f}/{mean(A, m, 'to_charger_min', **sel):.2f}"
-                                for m in ("rob_mpc_nc_bc", ref, "rob_mpc_nc_sm", "rob_mpc_nc_na"))
-                print(row + f" | {fmt(*paired(A, ref, 'rob_mpc_nc_sm', 'to_charger_min', **sel))}")
+                                for m in av_rules)
+                print(row + f" | {fmt(*paired(A, ref, 'rob_mpc_nc_sm', 'to_charger_min', **sel))}"
+                      f" {fmt(*paired(A, ref, 'rob_mpc_nc_bs', 'to_charger_min', **sel))}")
 
 
 def fix_table():
@@ -322,52 +340,64 @@ def joint_table():
               + " | " + " ".join(fmt(*paired(R, m, "rob_mpc_nc_bs", "to_charger_min", **sel))
                                  for m in ("rob_mpc_nc_bj", "rob_mpc_nc_br", "rob_mpc_nc_bl"))
               + f" | {diff:.2f}")
+    F = _with_total(loads("st_bf_k3", "st_bf_k2"))
+    if F:
+        cap = []
+        for name, sel in _settings(R):
+            g = mean(F, "rob_mpc_nc_bc", "to_charger_min", **sel) - mean(R, "rob_mpc_nc_bj", "to_charger_min", **sel)
+            cap.append((mean(F, "rob_mpc_nc_bc", "to_charger_min", **sel)
+                        - mean(R, "rob_mpc_nc_bs", "to_charger_min", **sel)) / g)
+        print(f"share of the joint gain over nc_bc obtained by nc_bs: median {np.median(cap):.2f} "
+              f"(range {min(cap):.2f}-{max(cap):.2f})")
 
 
 def aware_table():
-    """Compliance-aware station choice (ermpc_bs: a human driver who will likely ignore the order joins
-    the backlog of his own station) against ermpc_bc and the compliance-blind sequential rule."""
+    """Compliance-aware station choice (ermpc_bs / ermpc_bj: a human driver who will likely ignore the
+    order joins the backlog of the driver's own station) against ermpc_bc and the compliance-blind rules."""
     if not load("st_ca"):
         return
-    R = _with_total(load("st_ca") + load("st_diag"))
-    print("\nCOMPLIANCE-AWARE STATION CHOICE (x3, 50% AV): drive + queue per session nc_bs / ca_bc / ca_bs; "
-          "ca_bs minus ca_bc; ca_bs minus nc_bs (drive + queue, passenger wait)")
-    for name, sel in _settings([r for r in R if r["method"] == "ermpc_bs"]):
-        print(f"{name} " + "/".join(f"{mean(R, m, 'to_charger_min', **sel):.2f}"
-                                     for m in ("rob_mpc_nc_bs", "ermpc_bc", "ermpc_bs"))
-              + f" | {fmt(*paired(R, 'ermpc_bs', 'ermpc_bc', 'to_charger_min', **sel))}"
-              + f" | {fmt(*paired(R, 'ermpc_bs', 'rob_mpc_nc_bs', 'to_charger_min', **sel))}"
-              + f" {fmt(*paired(R, 'ermpc_bs', 'rob_mpc_nc_bs', 'wait_all_min', **sel))}")
+    R = _with_total(loads("st_ca", "st_ca_bj", "st_diag", "st_diag_bj"))
+    for seq in ("bs", "bj"):
+        ca, nc = "ermpc_" + seq, "rob_mpc_nc_" + seq
+        if not any(r["method"] == ca for r in R):
+            continue
+        print(f"\nCOMPLIANCE-AWARE STATION CHOICE (x3, 50% AV): drive + queue per session nc_{seq} / ca_bc / "
+              f"ca_{seq}; ca_{seq} minus ca_bc; ca_{seq} minus nc_{seq} (drive + queue, passenger wait)")
+        for name, sel in _settings([r for r in R if r["method"] == ca]):
+            print(f"{name} " + "/".join(f"{mean(R, m, 'to_charger_min', **sel):.2f}" for m in (nc, "ermpc_bc", ca))
+                  + f" | {fmt(*paired(R, ca, 'ermpc_bc', 'to_charger_min', **sel))}"
+                  + f" | {fmt(*paired(R, ca, nc, 'to_charger_min', **sel))}"
+                  + f" {fmt(*paired(R, ca, nc, 'wait_all_min', **sel))}")
 
 
 def acceptance_table():
     """Station rules when human drivers accept orders more often: an order-acceptance constant kappa
     (alpha_mean) shifts the logit of every compliance probability (kappa = 0 is st_diag)."""
-    A = load("st_acc")
+    A = loads("st_acc", "st_acc_bj")
     if not A:
         return
-    R = _with_total(load("st_diag") + A)
-    rules = ("rob_mpc_nc_bc", "rob_mpc_nc_bs", "rob_mpc_nc_sm", "rob_mpc_nc_na")
+    R = _with_total(loads("st_diag", "st_diag_bj") + A)
+    rules = ("rob_mpc_nc_bc", "rob_mpc_nc_bs", MAIN, "rob_mpc_nc_sm", "rob_mpc_nc_na")
     src = ("av", "h_follow", "h_own")
     print("\nORDER ACCEPTANCE (x3, 50% AV, 2 or 4 chargers): per kappa and chargers, means over 6 settings of "
           "the share of human orders followed (nc_bs), the h_own share of human sessions and of queue minutes "
-          "(nc_bs), queue / drive + queue for nc_bc / nc_bs / nc_sm / nc_na, and the settings in which nc_bs "
-          "is better / worse than nc_sm and nc_na (drive + queue, paired 95%)")
+          "(main rule), queue / drive + queue for nc_bc / nc_bs / nc_bj / nc_sm / nc_na, and the settings in which "
+          "the main rule is better / worse than nc_sm, nc_na and nc_bs (drive + queue, paired 95%)")
     for kap in (0.0, 1.0, 2.0, 3.0):
         for pl in (4, 2):
             K = [r for r in R if r["alpha_mean"] == kap and r["piles"] == pl]
-            bs = [r for r in K if r["method"] == "rob_mpc_nc_bs"]
+            bs = [r for r in K if r["method"] == MAIN]
             n = {s: sum(r["n_charges_" + s] for r in bs) for s in src}
             q = {s: sum(r["charge_wait_" + s] * r["n_charges_" + s] for r in bs if r["n_charges_" + s]) for s in src}
             row = (f"kappa={kap:g} {pl}ch followed {np.mean([r['compliance_rate'] for r in bs]):.2f} "
                    f"h_own {n['h_own'] / max(1, n['h_own'] + n['h_follow']):.2f}/{q['h_own'] / max(1e-9, sum(q.values())):.2f} | ")
             row += " ".join(f"{np.mean([r['charge_wait_min'] for r in K if r['method'] == m]):.2f}/"
                             f"{np.mean([r['to_charger_min'] for r in K if r['method'] == m]):.2f}" for m in rules)
-            for other in ("rob_mpc_nc_sm", "rob_mpc_nc_na"):
+            for other in ("rob_mpc_nc_sm", "rob_mpc_nc_na", "rob_mpc_nc_bs"):
                 better = worse = 0
                 for f in (160, 120):
                     for dv in ("chase", "stay", "hotspot"):
-                        mu, h = paired(K, "rob_mpc_nc_bs", other, "to_charger_min", fleet_size=f, deviation=dv)
+                        mu, h = paired(K, MAIN, other, "to_charger_min", fleet_size=f, deviation=dv)
                         better += mu < -h
                         worse += mu > h
                 row += f" | vs {other[-2:]} {better}/{worse}"
@@ -376,14 +406,15 @@ def acceptance_table():
 
 def source_table():
     """Queue at chargers by who chose the station: AVs, humans who followed the order, and the rest."""
-    R = load("st_diag")
+    R = loads("st_diag", "st_diag_bj", "st_ca", "st_ca_bj")
     if not R:
         return
     src = ("av", "h_follow", "h_own")
     print("\nQUEUE BY STATION SOURCE (x3, 50% AV, 12 settings with 2 or 4 chargers, pooled sessions)")
-    R += load("st_ca")
-    for m in ("rob_mpc_nc_bs", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_na", "ermpc_bs", "ermpc_bc"):
+    for m in (MAIN, "rob_mpc_nc_bs", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_na", "ermpc_bj", "ermpc_bs", "ermpc_bc"):
         M = [r for r in R if r["method"] == m]
+        if not M:
+            continue
         n = {s: sum(r["n_charges_" + s] for r in M) for s in src}
         q = {s: sum(r["charge_wait_" + s] * r["n_charges_" + s] for r in M) for s in src}
         row = (f"{m:15s} h_own share of human sessions {n['h_own'] / (n['h_own'] + n['h_follow']):.3f}, "

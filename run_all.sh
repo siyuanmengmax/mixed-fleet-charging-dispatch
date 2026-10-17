@@ -34,6 +34,11 @@ $R --methods rob_mpc_nc_bc rob_mpc_nc_bs rob_mpc_nc_sm rob_mpc_nc_na --demand_k 
 BJ="rob_mpc_nc_bs rob_mpc_nc_bj rob_mpc_nc_br rob_mpc_nc_bl"
 $R --methods $BJ --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_bj_k3
 $R --methods $BJ --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_bj_k2
+# Joint rule in the AV-share, diagnostic, compliance-aware and order-acceptance runs (same seeds, merged in the summary)
+$R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --av_rates 0 1 --deviation chase --piles 2 4 --tag st_av_bj
+$R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_diag_bj
+$R --methods ermpc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_ca_bj
+$R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --alpha_mean 1 2 3 --tag st_acc_bj
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix

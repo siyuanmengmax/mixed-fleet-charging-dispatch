@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from chicago_loop.experiments.summarize_final import load, mean, paired
+from chicago_loop.experiments.summarize_final import load, loads, mean, paired
 
 plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8,
                      "legend.fontsize": 7, "xtick.labelsize": 7, "ytick.labelsize": 7,
@@ -120,7 +120,8 @@ RULES = [("self", "Self-dispatch", "#BBBBBB"),
          ("rob_mpc_nc_sm", "Capacity, station guaranteed", "#E69F00"),
          ("rob_mpc_nc_na", "Nearest idle charger", "#56B4E9"),
          ("rob_mpc_nc_bc", "Backlog wait, independent", "#0072B2"),
-         ("rob_mpc_nc_bs", "Backlog wait, sequential", "#D55E00")]
+         ("rob_mpc_nc_bs", "Backlog wait, sequential", "#CC79A7"),
+         ("rob_mpc_nc_bj", "Backlog wait, joint", "#D55E00")]
 
 
 YMAX = 12.0
@@ -129,10 +130,10 @@ YMAX = 12.0
 def fig_scarcity(R):
     """Drive to the station and queue per session by chargers per station (3x demand, chase drivers)."""
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.6), sharey=True)
-    w = 0.13
+    w = 0.115
     for ax, f in zip(axes, (160, 120)):
         for k, (m, lab, c) in enumerate(RULES):
-            x = np.arange(3) + (k - 2.5) * w
+            x = np.arange(3) + (k - 3) * w
             sel = [dict(piles=p, fleet_size=f, deviation="chase", demand_k=3.0) for p in (2, 3, 4)]
             q = [mean(R, m, "charge_wait_min", **s) for s in sel]
             d = [mean(R, m, "to_station_min", **s) for s in sel]
@@ -146,7 +147,7 @@ def fig_scarcity(R):
         ax.set_ylim(0, YMAX)
         ax.set_title(f"({'a' if f == 160 else 'b'}) {f} vehicles")
     axes[0].set_ylabel("Min per session")
-    fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc="upper center", ncol=3)
+    fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc="upper center", ncol=4)
     fig.tight_layout(rect=(0, 0, 1, 0.82))
     fig.savefig(OUT / "fig_scarcity.pdf", bbox_inches="tight")
     plt.close(fig)
@@ -185,7 +186,7 @@ if __name__ == "__main__":
     fig_rho(load("final_rho"))
     fig_mechanism(load("cf_main_k3"))
     fig_level(load("het_level"))
-    st = _times(load("st_k3") + load("st_bs_k3"))
+    st = _times(loads("st_k3", "st_bs_k3", "st_bj_k3"))
     fig_scarcity(st)
-    fig_avshare(_times(load("st_av")) + [r for r in st if r["av_rate"] == 0.5 and r["deviation"] == "chase"])
+    fig_avshare(_times(loads("st_av", "st_av_bj")) + [r for r in st if r["av_rate"] == 0.5 and r["deviation"] == "chase"])
     print("figures written to", OUT)

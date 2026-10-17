@@ -2,7 +2,7 @@
 
 Code, data, and results for the paper *Queue-Aware Charging-Station Choice in the Dispatch of Mixed Autonomous and Human-Driven Electric Ride-Hailing Fleets* (Siyuan Meng and Chengbo Ai, University of Massachusetts Amherst; manuscript in preparation).
 
-A rolling-horizon dispatcher repositions vacant vehicles and chooses charging stations for an electric ride-hailing fleet of autonomous vehicles and human drivers in the Chicago Loop. Station choice uses a waiting time predicted from the vehicles in service, queued, and en route at each station, and the vehicles that must charge in one step are assigned sequentially, each added to the backlog of its station before the next is assigned. The demand coverage can optionally use the expected supply of human drivers under a Logit compliance model. The repository contains the dispatch model, the full-shift simulator, the network and demand data, and the result files behind every table and figure.
+A rolling-horizon dispatcher repositions vacant vehicles and chooses charging stations for an electric ride-hailing fleet of autonomous vehicles and human drivers in the Chicago Loop. Station choice uses a waiting time predicted from the vehicles in service, queued, and en route at each station, and the vehicles that must charge in one step are assigned jointly, solved exactly by dynamic programming over subsets. The demand coverage can optionally use the expected supply of human drivers under a Logit compliance model. The repository contains the dispatch model, the full-shift simulator, the network and demand data, and the result files behind every table and figure.
 
 ## Contents
 
@@ -59,10 +59,10 @@ Every method sees the same demand realization and the same compliance draws for 
 | `ermpc_ms[K]`, `ermpc_msf[K]` | Multi-step compliance with learned re-issue rate and with $r = 1$ ($K = 3$ by default) |
 | `ermpc_nofb`, `ermpc_fbonly`, `ermpc_flat` | Ablations: no fallback credit, fallback credit only, zone-independent probability |
 | no suffix | Station choice by a capacity constraint for the next control interval |
-| suffix `_bs` | Predicted backlog wait, vehicles assigned sequentially (the proposed rule) |
+| suffix `_bs` | Predicted backlog wait, vehicles assigned sequentially (greedy, nearest first) |
 | suffix `_bc` / `_bo` | Predicted backlog wait per vehicle, with / without the vehicles en route |
 | suffix `_bf` | Ablation: stations fixed before the solve by the per-vehicle argmin, without the sequential update |
-| suffix `_bj` | Exact joint assignment of the vehicles that must charge in one step (dynamic programming over subsets) |
+| suffix `_bj` | Predicted backlog wait, exact joint assignment of the vehicles that must charge in one step (dynamic programming over subsets; the proposed rule) |
 | suffix `_br` / `_bl` | Sequential rule with random order / lowest SOC first |
 | suffix `_sm` / `_sh` | Capacity constraint that gives every vehicle that must charge a station / capacity over one session |
 | suffix `_nr` / `_na` / `_sq` | Nearest station / nearest station with an idle charger / shortest estimated queue |
