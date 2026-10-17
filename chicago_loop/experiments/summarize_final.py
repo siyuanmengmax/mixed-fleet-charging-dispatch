@@ -25,7 +25,7 @@ def load(tag):
     return json.load(open(files[-1])) if files else []
 
 
-KEY = ("method", "seed", "demand_k", "fleet_size", "piles", "deviation", "av_rate", "alpha_mean", "alpha_sd")
+KEY = ("method", "seed", "demand_k", "fleet_size", "piles", "deviation", "av_rate", "alpha_mean", "alpha_sd", "station_km")
 
 
 def loads(*tags):
@@ -338,6 +338,38 @@ def batch_table():
     print(f"overall largest batch {max(r['n_must_charge_max'] for r in R)}; joint fallbacks {sum(r['joint_fallback'] for r in R)}")
 
 
+def far_table():
+    """Distant stations (st_far runs): an access leg of d km to and from every station; d = 0 is st_k3/st_bj_k3.
+    Per access distance, counts over the 12 settings (x3, 2 or 4 chargers) of significant differences."""
+    F = loads("st_far")
+    if not F:
+        return
+    R = _with_total(F + [r for r in loads("st_k3", "st_bs_k3", "st_bj_k3") if r["piles"] in (2, 4)])
+    for r in R:
+        r["station_km"] = r.get("station_km", 0.0)
+        r["drive_min"] = r["to_charger_min"] - r["charge_wait_min"]
+    rules = ("rob_mpc_nc_na", "rob_mpc_nc_sm", "rob_mpc_nc_bo", "rob_mpc_nc_bc", "rob_mpc_nc_bs", MAIN)
+    print("\nDISTANT STATIONS (x3, 2 or 4 chargers): per access distance d and setting, drive / queue per session for "
+          "nc_na / nc_sm / nc_bo / nc_bc / nc_bs / nc_bj; then bc-bo (queue), bj-bc, bj-bs, bj-na, bj-sm (drive + queue)")
+    pairs = (("rob_mpc_nc_bc", "rob_mpc_nc_bo", "charge_wait_min"), (MAIN, "rob_mpc_nc_bc", "to_charger_min"),
+             (MAIN, "rob_mpc_nc_bs", "to_charger_min"), (MAIN, "rob_mpc_nc_na", "to_charger_min"),
+             (MAIN, "rob_mpc_nc_sm", "to_charger_min"))
+    for d in (0.0, 1.5, 3.0):
+        D = [r for r in R if r["station_km"] == d]
+        cnt = {p: [0, 0, []] for p in pairs}
+        for name, sel in _settings(D):
+            print(f"d={d:g} {name} " + " ".join(f"{mean(D, m, 'drive_min', **sel):.1f}/{mean(D, m, 'charge_wait_min', **sel):.2f}"
+                                               for m in rules)
+                  + " |" + "".join(f" {fmt(*paired(D, a, b, k, **sel))}" for a, b, k in pairs))
+            for p in pairs:
+                mu, h = paired(D, *p[:2], p[2], **sel)
+                cnt[p][0] += mu < -h
+                cnt[p][1] += mu > h
+                cnt[p][2].append(mu)
+        print(f"d={d:g} summary: " + "; ".join(f"{SHORT(a)}-{SHORT(b)} better/worse {c[0]}/{c[1]} "
+                                              f"range {min(c[2]):+.2f}..{max(c[2]):+.2f}" for (a, b, _), c in cnt.items()))
+
+
 def fix_table():
     """Ablation of the sequential update: stations fixed before the solve by the same per-vehicle
     argmin, without adding each vehicle to the backlog (nc_bf), against nc_bc and nc_bs."""
@@ -475,6 +507,7 @@ if __name__ == "__main__":
     station_table()
     pooled_table()
     batch_table()
+    far_table()
     fix_table()
     joint_table()
     aware_table()

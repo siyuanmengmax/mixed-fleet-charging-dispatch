@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-runs every experiment of the paper (about 2.5 h with 30 worker processes on a 32-thread
+# Re-runs every experiment of the paper (about 3 h with 30 worker processes on a 32-thread
 # desktop CPU). Each command writes chicago_loop/results/<tag>_<timestamp>.json.
 set -e
 R="python -m chicago_loop.experiments.run_eval --seeds 20 --workers ${WORKERS:-30} --idle_humans self"
@@ -42,6 +42,9 @@ $R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay h
 # Joint rule again with the largest must-charge batch per step logged (same results as st_bj)
 $R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_nmax_k3
 $R --methods rob_mpc_nc_bj --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_nmax_k2
+# Distant stations: an access leg of 1.5 or 3 km added to every trip to and from a station
+$R --methods rob_mpc_nc_na rob_mpc_nc_sm rob_mpc_nc_bo rob_mpc_nc_bc rob_mpc_nc_bs rob_mpc_nc_bj --demand_k 3 --fleet 120 160 \
+   --deviation chase stay hotspot --piles 2 4 --station_km 1.5 3 --tag st_far
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix
