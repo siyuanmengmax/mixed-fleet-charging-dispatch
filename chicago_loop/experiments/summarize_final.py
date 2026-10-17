@@ -304,6 +304,40 @@ def station_table():
                       f" {fmt(*paired(A, ref, 'rob_mpc_nc_bs', 'to_charger_min', **sel))}")
 
 
+def pooled_table():
+    """Fleet drive + queue vehicle-hours per shift and pooled tests over the 27 station settings:
+    sign test on the setting means and t-test over settings, joint rule minus each other rule."""
+    R = _with_total(loads("st_k3", "st_k2", "st_bs_k3", "st_bs_k2", "st_bj_k3", "st_bj_k2"))
+    if not R:
+        return
+    for r in R:
+        r["veh_h_dq"] = r["veh_h_queue"] + r["veh_h_to_station"]
+    print("\nPOOLED OVER 27 STATION SETTINGS: nc_bj minus rule; fleet drive + queue veh-h per shift (range, mean; "
+          "4 and 2 chargers); settings with a shorter drive + queue per session, sign-test p, t-test over settings p")
+    for b in ("rob_mpc_nc_na", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_bs"):
+        vh = {pl: [paired(R, MAIN, b, "veh_h_dq", **sel)[0] for _, sel in _settings(R) if pl in (0, sel["piles"])]
+              for pl in (0, 4, 2)}
+        dm = [paired(R, MAIN, b, "to_charger_min", **sel)[0] for _, sel in _settings(R)]
+        neg = sum(x < 0 for x in dm)
+        print(f"{SHORT(b):6s} veh-h {min(vh[0]):+.2f}..{max(vh[0]):+.2f} (mean {np.mean(vh[0]):+.2f}; "
+              f"4ch {min(vh[4]):+.2f}..{max(vh[4]):+.2f}, 2ch {min(vh[2]):+.2f}..{max(vh[2]):+.2f}) | "
+              f"shorter {neg}/{len(dm)} sign p={stats.binomtest(neg, len(dm), 0.5).pvalue:.1e} "
+              f"t p={stats.ttest_1samp(dm, 0).pvalue:.1e}")
+
+
+def batch_table():
+    """Largest number of must-charge vehicles assigned together in one step (st_nmax runs, joint rule)."""
+    R = loads("st_nmax_k3", "st_nmax_k2")
+    if not R:
+        return
+    print("\nMUST-CHARGE VEHICLES PER STEP (joint rule): largest batch per setting (max over seeds), "
+          "steps per shift with >= 5")
+    for name, sel in _settings(R):
+        M = [r for r in R if all(r[k] == v for k, v in sel.items())]
+        print(f"{name} max {max(r['n_must_charge_max'] for r in M)} | >=5 {np.mean([r['n_steps_charge_ge5'] for r in M]):.2f}")
+    print(f"overall largest batch {max(r['n_must_charge_max'] for r in R)}; joint fallbacks {sum(r['joint_fallback'] for r in R)}")
+
+
 def fix_table():
     """Ablation of the sequential update: stations fixed before the solve by the same per-vehicle
     argmin, without adding each vehicle to the backlog (nc_bf), against nc_bc and nc_bs."""
@@ -439,6 +473,8 @@ if __name__ == "__main__":
     cf_tables()
     margin_table()
     station_table()
+    pooled_table()
+    batch_table()
     fix_table()
     joint_table()
     aware_table()

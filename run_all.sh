@@ -39,6 +39,9 @@ $R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --av_rates 0 1 --deviati
 $R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_diag_bj
 $R --methods ermpc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_ca_bj
 $R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --alpha_mean 1 2 3 --tag st_acc_bj
+# Joint rule again with the largest must-charge batch per step logged (same results as st_bj)
+$R --methods rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_nmax_k3
+$R --methods rob_mpc_nc_bj --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_nmax_k2
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix
@@ -61,3 +64,4 @@ $C --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 
 
 python -m chicago_loop.experiments.summarize_final > chicago_loop/results/final_summary.txt
 python -m chicago_loop.experiments.make_figures_final
+python -m chicago_loop.experiments.time_joint    # timing of the joint assignment

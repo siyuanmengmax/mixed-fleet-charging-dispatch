@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 #   wait_joint the vehicles that must charge in this step are assigned jointly: the assignment that
 #              minimizes the sum of β·τ_is + γ_w·w_is, with the waits replayed for all of them
 #              together, found exactly by dynamic programming over subsets (up to JOINT_MAX vehicles)
-#   wait_seq_h the same, but human drivers are assigned first, each to the station he would choose
+#   wait_seq_h the same, but human drivers are assigned first, each to the station the driver would choose
 #              himself (the nearest), and the AVs are then assigned around them
 #   nearest    nearest station (w = 0)
 #   available  nearest station with an idle charger, otherwise the nearest station
@@ -191,13 +191,13 @@ class ERMPCOptimizer:
         self.idle_supply = idle_supply   # count vehicles left in place as supply of their zone
         self.charge_wait_weight = charge_wait_weight   # γ_w on the backlog-predicted wait at a station
         # With compliance coefficients, take travel cost and look-ahead reward in expectation over
-        # compliance, as the supply is: a driver who does not follow an order drives to his fallback.
+        # compliance, as the supply is: a driver who does not follow an order drives to the driver's fallback.
         self.expected_cost = expected_cost
         # Diagnostics (counterfactual ablations of the compliance-aware supply): credit refused
         # zone orders to the fallback zone; discount a zone order by its compliance probability.
         self.fallback_credit = fallback_credit
         self.pi_discount = pi_discount
-        # a human driver left without an order takes his fallback action (credit his fallback zone)
+        # a human driver left without an order takes the fallback action (credit the fallback zone)
         self.idle_to_fallback = idle_to_fallback
         # Station choice of the vehicles below the SOC threshold (see STATION_RULES). The wait rules
         # price a station wait w_is with weight γ_w and drop the capacity constraint; the capacity
@@ -362,7 +362,7 @@ class ERMPCOptimizer:
             piz = coeffs.get("pi_zone", {})
             self_action = coeffs.get("self_action", None)
             # x̃_ij = π_ij x_ij + b_ij Σ_k (1 − π_ik) x_ik: a driver who does not follow the zone order
-            # he actually receives goes to his fallback zone (b_ij = 1 if that zone is j).
+            # the driver actually receives goes to the fallback zone (b_ij = 1 if that zone is j).
             own = piz.get(j, 1.0) if self.pi_discount else 1.0
             if self.fallback_credit and isinstance(self_action, RepositionAction) and self_action.zone_id == j:
                 return own * x[(i, j)] + pulp.lpSum(
@@ -451,8 +451,8 @@ class ERMPCOptimizer:
                 seq_station[i] = best
                 if self.station_rule == "wait_fix":
                     continue
-                # with compliance coefficients, a human driver joins the backlog of the station he
-                # most likely drives to (the order, or his fallback station)
+                # with compliance coefficients, a human driver joins the backlog of the station the driver
+                # most likely drives to (the order, or the fallback station)
                 a = inp.compliance_coeffs.get(i, {}).get("self_action")
                 dest = (a.station_id if isinstance(a, ChargeAction) and pi_ij(i, best, station=True) < 0.5
                         else best)
@@ -536,7 +536,7 @@ class ERMPCOptimizer:
             effective_supply_j = pulp.lpSum(x_tilde(i, j) for i in v_ids)
             if self.idle_supply:
                 # a vehicle left without an order stays vacant in its zone and serves requests there
-                # (or, with idle_to_fallback, a human driver goes to his fallback zone)
+                # (or, with idle_to_fallback, a human driver goes to the fallback zone)
                 effective_supply_j += pulp.lpSum(
                     1 - pulp.lpSum(x[(i, k)] for k in z_ids) - pulp.lpSum(y[(i, s)] for s in s_ids)
                     for i in v_ids if _idle_zone(i) == j)
@@ -544,8 +544,8 @@ class ERMPCOptimizer:
             protect_pi = 0
             if humans_pi:
                 # Loss of zone-j supply if driver i's compliance probability deviates by ε:
-                # assigned to j (and j is not his own choice) -> he complies less;
-                # his own choice is j but he is assigned to k -> he complies more and does not come.
+                # assigned to j (and j is not the driver's own choice) -> lower compliance;
+                # the driver's own choice is j but the order is k -> higher compliance, the driver does not come.
                 for i in humans_pi:
                     eps = inp.compliance_coeffs[i]["eps_zone"]
                     b = 1.0 if _self_zone(i) == j else 0.0

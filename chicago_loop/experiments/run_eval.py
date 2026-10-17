@@ -184,7 +184,7 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
     pop_pi = {}             # vid -> population (pi_zone, pi_station) of its last planned orders
     ms = parse_ms(method)
     dg = dict(n_h=0, same=0, move=0, pi=0.0, tt=0.0, n_av=0, move_av=0)   # zone orders actually issued
-    cap = dict(steps=0, capped=0, mc=0, mc_out=0, multi_steps=0, mc_multi=0)   # dispatch steps; steps over MAX_BATCH; vehicles that must charge; steps with >= 2 of them in the batch
+    cap = dict(steps=0, capped=0, mc=0, mc_out=0, multi_steps=0, mc_multi=0, mc_max=0, steps_ge5=0)   # dispatch steps; steps over MAX_BATCH; vehicles that must charge; steps with >= 2 of them in the batch; largest batch; steps with >= 5
     reissue = [1.0, 1.0]    # Beta(1, 1) counts: refused zone orders re-issued at the next epoch / not
     refused_prev = set()    # human drivers who refused a zone order at the previous epoch
     batch_rng = np.random.default_rng(seed + 7919)
@@ -209,6 +209,8 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
                 cap["mc"] += len(mc)
                 cap["mc_out"] += sum(1 for vid in mc if vid not in ids)
                 n_in = sum(1 for vid in mc if vid in ids)     # must-charge vehicles assigned together
+                cap["mc_max"] = max(cap["mc_max"], n_in)
+                cap["steps_ge5"] += n_in >= 5
                 if n_in >= 2:
                     cap["multi_steps"] += 1
                     cap["mc_multi"] += n_in
@@ -298,7 +300,7 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
              diag_move_av=dg["move_av"] / max(1, dg["n_av"]), diag_n_orders_h=dg["n_h"],
              solve_s=round(solve_s, 1), n_dispatch_steps=cap["steps"],
              share_steps_capped=cap["capped"] / max(1, cap["steps"]), n_must_charge=cap["mc"],
-             n_must_charge_unbatched=cap["mc_out"],
+             n_must_charge_unbatched=cap["mc_out"], n_must_charge_max=cap["mc_max"], n_steps_charge_ge5=cap["steps_ge5"],
              n_steps_multi_charge=cap["multi_steps"], n_must_charge_multi=cap["mc_multi"],
              joint_steps=getattr(opt, "joint_stats", {}).get("steps"), joint_differs=getattr(opt, "joint_stats", {}).get("differs"),
              joint_fallback=getattr(opt, "joint_stats", {}).get("fallback"), reissue_rate=reissue[0] / sum(reissue) if ms is not None else None)

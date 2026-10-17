@@ -12,8 +12,8 @@ Differences from experiments/standalone_sim.py:
   * a vacant vehicle picks up requests that appear in its own zone without being dispatched;
   * a vehicle below SOC_MUST_CHARGE cannot take trips and must charge; stations hold a FIFO
     queue; a vehicle that reaches SOC 0 is counted as stranded;
-  * a human driver who does not follow an assignment takes his self-preferred action:
-    the nearest station when he must charge, otherwise the zone with the most pending requests
+  * a human driver who does not follow an assignment takes the driver's self-preferred action:
+    the nearest station when the vehicle must charge, otherwise the zone with the most pending requests
     per minute of travel (the rule of LogitComplianceModel.self_preferred_action);
   * with alpha_sd > 0, each human driver i has a persistent compliance propensity
     alpha_i ~ N(alpha_mean, alpha_sd^2) that shifts the logit of every compliance probability:
@@ -144,8 +144,8 @@ class ShiftEnv:
         a_rng = np.random.default_rng(int(type_rng.integers(2**31)))
         self.alpha_sd = alpha_sd
         self.alpha = {vid: (0.0 if v.av else float(alpha_mean + alpha_sd * a_rng.standard_normal())) for vid, v in self.veh.items()}
-        # what a vacant human driver without an order does: "stay" in his zone, or "self": take his
-        # self-preferred action, as when he refuses an order
+        # what a vacant human driver without an order does: "stay" in the current zone, or "self": take the
+        # self-preferred action, as after refusing an order
         self.idle_humans = idle_humans
         self.outcomes = []          # (vid, kind, dest, complied) of human orders that differ from the self action
 
