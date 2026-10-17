@@ -178,5 +178,7 @@ DELTA_T_MIN = 5.0             # Control interval ΔT in minutes
 BATTERY_CAPACITY_KWH = 60.0   # B_i (BYD e6)
 CONSUMPTION_RATE = 0.20       # η_i kWh/km
 MAX_CHARGE_POWER_KW = 50.0    # P_i^max
-NOMINAL_CHARGE_DURATION_MIN = 18.0   # q̄_i (to 80% SOC)
+# The charging time q_i is per vehicle: VehicleState.nominal_charge_duration_min() (about 43 min
+# from SOC 0.2 to 0.8 at 50 kW). Runs before 2026-10-16 used a fixed q̄ = 18 min in the capacity
+# constraint, which was inconsistent with the simulator.
 CHARGE_DURATION_UNCERTAINTY = 3.0    # q̂_i

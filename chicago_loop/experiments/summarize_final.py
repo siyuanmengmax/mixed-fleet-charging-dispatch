@@ -21,7 +21,7 @@ PREFIX = os.environ.get("PB_PREFIX", "s_")
 
 
 def load(tag):
-    files = sorted(glob.glob(f"{RES}/{PREFIX if not tag.startswith('cf_') else ''}{tag}_2*.json"))
+    files = sorted(glob.glob(f"{RES}/{PREFIX if not tag.startswith(('cf_', 'st_')) else ''}{tag}_2*.json"))
     return json.load(open(files[-1])) if files else []
 
 
@@ -43,7 +43,9 @@ def fmt(mu, h):
 
 def main_tables():
     R = load("final_main_k3") + load("final_main_k2")
-    methods = ["self", "det_mpc", "rob_mpc_nc", "rob_mpc_nc_bc", "ermpc", "ermpc_bc", "ermpc_rpi_bc"]
+    # The static-capacity variants of these runs used q̄ = 18 min (superseded); station choice is
+    # compared in station_table() on the st_* runs.
+    methods = ["self", "rob_mpc_nc_bc", "ermpc_bc", "ermpc_rpi_bc"]
     settings = sorted({(r["demand_k"], r["fleet_size"]) for r in R}, reverse=True)
     print("\nMAIN: mean wait (min) / service rate / charging queue (min per session)")
     for k, f in settings:
@@ -54,22 +56,11 @@ def main_tables():
                 row += f" {m}={mean(R, m, 'wait_all_min', **sel):.2f}/{mean(R, m, 'service_rate', **sel):.3f}/q{mean(R, m, 'charge_wait_min', **sel):.1f}"
             print(row)
     print("\nMAIN: paired differences in mean wait")
-    pairs = [("rob_mpc_nc", "self"), ("ermpc_bc", "rob_mpc_nc_bc"), ("ermpc_rpi_bc", "ermpc_bc"),
-             ("rob_mpc_nc_bc", "rob_mpc_nc"), ("ermpc_bc", "ermpc")]
+    pairs = [("rob_mpc_nc_bc", "self"), ("ermpc_bc", "rob_mpc_nc_bc"), ("ermpc_rpi_bc", "ermpc_bc")]
     for k, f in settings:
         for dv in ("chase", "stay", "hotspot"):
             sel = dict(demand_k=k, fleet_size=f, deviation=dv)
             print(f"x{k:g} {f} {dv:7}" + "".join(f" | {a}-{b} {fmt(*paired(R, a, b, **sel))}" for a, b in pairs))
-    print("\nCHARGING: queue per session (min), fleet queue (veh-h), passenger wait; _bc minus static")
-    for k, f in settings:
-        for dv in ("chase", "stay"):
-            sel = dict(demand_k=k, fleet_size=f, deviation=dv)
-            row = f"x{k:g} {f} {dv:5}"
-            for a, b in [("rob_mpc_nc_bc", "rob_mpc_nc"), ("ermpc_bc", "ermpc")]:
-                row += (f" | {a}: q {fmt(*paired(R, a, b, 'charge_wait_min', **sel))}"
-                        f" veh-h {fmt(*paired(R, a, b, 'veh_h_queue', **sel))}"
-                        f" wait {fmt(*paired(R, a, b, **sel))}")
-            print(row)
 
 
 def misspec_table():
@@ -221,21 +212,97 @@ def margin_table():
                   + f" | det+pi-det {fmt(*paired(R, 'det_mpc_pi_bc', 'det_mpc_bc', **sel))}")
 
 
-def charge_table():
-    """Station choice by chargers per station (s_charge runs)."""
-    R = load("charge")
+STATION = ["self", "rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_sh", "rob_mpc_nc_nr", "rob_mpc_nc_na",
+           "rob_mpc_nc_sq", "rob_mpc_nc_bo", "rob_mpc_nc_bc", "rob_mpc_nc_bs"]
+SHORT = lambda m: m.replace("rob_mpc_nc", "nc")
+
+
+def to_charger(r):
+    """Minutes per session from the station order to the start of charging (drive + queue)."""
+    return r["veh_h_to_station"] * 60 / max(1, r["n_charges"]) + r["charge_wait_min"]
+
+
+def _with_total(R):
+    for r in R:
+        r["to_charger_min"] = to_charger(r)
+    return R
+
+
+def _settings(R):
+    for k in (3.0, 2.0):
+        for pl in (4, 3, 2):
+            for f in (160, 120):
+                for dv in ("chase", "stay", "hotspot"):
+                    sel = dict(demand_k=k, piles=pl, fleet_size=f, deviation=dv)
+                    if any(all(r.get(a) == b for a, b in sel.items()) for r in R):
+                        yield f"x{k:g} {pl}ch {f} {dv:7}", sel
+
+
+def station_table():
+    """Station-choice rules by chargers per station (st_* runs, compliance-blind MPC with m = 1)."""
+    R = _with_total(load("st_k3") + load("st_k2") + load("st_bs_k3") + load("st_bs_k2"))
     if not R:
         return
-    print("\nSTATION CHOICE: queue per session (min) self / static / occupancy / backlog; backlog minus static")
-    for pl in (4, 3, 2):
+    ref, others = "rob_mpc_nc_bs", ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_na", "rob_mpc_nc_bc")
+    for key, title in (("charge_wait_min", "queue per session (min)"),
+                       ("to_charger_min", "drive + queue per session (min)"),
+                       ("wait_all_min", "mean passenger wait (min)")):
+        print(f"\nSTATION CHOICE: {title}: " + " / ".join(SHORT(m) for m in STATION)
+              + f"; then {SHORT(ref)} minus " + ", ".join(SHORT(b) for b in others))
+        for lab, sel in _settings(R):
+            print(lab + " " + "/".join(f"{mean(R, m, key, **sel):.2f}" for m in STATION) + " |"
+                  + "".join(f" {fmt(*paired(R, ref, b, key, **sel))}" for b in others))
+    print("\nSTATION CHOICE: fleet queue (veh-h) static / static+mc / backlog / sequential;"
+          " deterministic MPC queue static -> backlog; backlog minus occupancy-only (queue)")
+    for lab, sel in _settings(R):
+        vh = [mean(R, m, "veh_h_queue", **sel) for m in ("rob_mpc_nc", "rob_mpc_nc_sm", "rob_mpc_nc_bc", ref)]
+        print(lab + " veh-h " + "/".join(f"{x:.1f}" for x in vh)
+              + f" | det {mean(R, 'det_mpc', 'charge_wait_min', **sel):.2f} -> "
+                f"{mean(R, 'det_mpc_bc', 'charge_wait_min', **sel):.2f}"
+              + f" | bc-bo {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc_bo', 'charge_wait_min', **sel))}")
+    bs = [r for r in R if r["method"] == ref and r["n_charges"]]
+    dur = [r["veh_h_charging"] * 60 / r["n_charges"] for r in bs]
+    print(f"\nsequential backlog runs: session {np.mean(dur):.1f} min (range {min(dur):.1f}-{max(dur):.1f}), "
+          f"sessions per shift {min(r['n_charges'] for r in bs)}-{max(r['n_charges'] for r in bs)}, "
+          f"share of fleet time to station, queued or charging {min(r['share_charging_total'] for r in bs):.3f}-"
+          f"{max(r['share_charging_total'] for r in bs):.3f}")
+
+    A = _with_total(load("st_av"))
+    if not A:
+        return
+    A += [r for r in R if r["av_rate"] == 0.5 and r["demand_k"] == 3.0 and r["deviation"] == "chase"
+          and r["piles"] in (2, 4) and r["method"] in ("rob_mpc_nc_bc", "rob_mpc_nc_sm", "rob_mpc_nc_na", ref)]
+    print("\nAV SHARE AND STATION CHOICE (x3, chase): queue / drive + queue per session for "
+          "nc_bc / nc_bs / nc_sm / nc_na; nc_bs minus nc_sm (drive + queue)")
+    for pl in (4, 2):
         for f in (160, 120):
-            for dv in ("chase", "stay", "hotspot"):
-                sel = dict(piles=pl, fleet_size=f, deviation=dv)
-                q = [mean(R, m, "charge_wait_min", **sel) for m in ("self", "rob_mpc_nc", "rob_mpc_nc_bo", "rob_mpc_nc_bc")]
-                print(f"{pl} chargers {f} {dv:7} " + "/".join(f"{x:.2f}" for x in q)
-                      + f" | queue {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc', 'charge_wait_min', **sel))}"
-                      + f" | backlog-occupancy {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc_bo', 'charge_wait_min', **sel))}"
-                      + f" | passenger wait {fmt(*paired(R, 'rob_mpc_nc_bc', 'rob_mpc_nc', **sel))}")
+            for a in (0.0, 0.5, 1.0):
+                sel = dict(av_rate=a, piles=pl, fleet_size=f)
+                row = f"{pl}ch {f} rho={a:g} "
+                row += " ".join(f"{mean(A, m, 'charge_wait_min', **sel):.2f}/{mean(A, m, 'to_charger_min', **sel):.2f}"
+                                for m in ("rob_mpc_nc_bc", ref, "rob_mpc_nc_sm", "rob_mpc_nc_na"))
+                print(row + f" | {fmt(*paired(A, ref, 'rob_mpc_nc_sm', 'to_charger_min', **sel))}")
+
+
+def source_table():
+    """Queue at chargers by who chose the station: AVs, humans who followed the order, and the rest."""
+    R = load("st_diag")
+    if not R:
+        return
+    src = ("av", "h_follow", "h_own")
+    print("\nQUEUE BY STATION SOURCE (x3, 50% AV, 12 settings with 2 or 4 chargers, pooled sessions)")
+    for m in ("rob_mpc_nc_bs", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_na"):
+        M = [r for r in R if r["method"] == m]
+        n = {s: sum(r["n_charges_" + s] for r in M) for s in src}
+        q = {s: sum(r["charge_wait_" + s] * r["n_charges_" + s] for r in M) for s in src}
+        row = (f"{m:15s} h_own share of human sessions {n['h_own'] / (n['h_own'] + n['h_follow']):.3f}, "
+               f"of queue minutes {q['h_own'] / sum(q.values()):.3f}; queue av+h_follow / h_own:")
+        for pl in (4, 2):
+            P = [r for r in M if r["piles"] == pl]
+            per = [sum(r["charge_wait_" + s] * r["n_charges_" + s] for r in P for s in g)
+                   / sum(r["n_charges_" + s] for r in P for s in g) for g in (("av", "h_follow"), ("h_own",))]
+            row += f" {pl}ch {per[0]:.2f} / {per[1]:.2f}"
+        print(row)
 
 
 if __name__ == "__main__":
@@ -249,4 +316,5 @@ if __name__ == "__main__":
     ms_tables()
     cf_tables()
     margin_table()
-    charge_table()
+    station_table()
+    source_table()

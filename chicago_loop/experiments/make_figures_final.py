@@ -115,55 +115,77 @@ def fig_level(R):
     plt.close(fig)
 
 
+RULES = [("self", "Self-dispatch", "#BBBBBB"),
+         ("rob_mpc_nc", "Capacity, no station guaranteed", "#999999"),
+         ("rob_mpc_nc_sm", "Capacity, station guaranteed", "#E69F00"),
+         ("rob_mpc_nc_na", "Nearest idle charger", "#56B4E9"),
+         ("rob_mpc_nc_bc", "Backlog wait, independent", "#0072B2"),
+         ("rob_mpc_nc_bs", "Backlog wait, sequential", "#D55E00")]
+
+
+YMAX = 12.0
+
+
 def fig_scarcity(R):
-    """Queue at chargers by chargers per station (s_charge runs, 3x demand, chase drivers)."""
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.4), sharey=True)
-    cols = [("self", "Self-dispatch (nearest station)", "#BBBBBB"),
-            ("rob_mpc_nc", "MPC, static capacity", "#999999"),
-            ("rob_mpc_nc_bo", "MPC, occupancy wait", "#56B4E9"),
-            ("rob_mpc_nc_bc", "MPC, backlog wait", "#D55E00")]
-    w = 0.2
+    """Drive to the station and queue per session by chargers per station (3x demand, chase drivers)."""
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.6), sharey=True)
+    w = 0.13
     for ax, f in zip(axes, (160, 120)):
-        for k, (m, lab, c) in enumerate(cols):
-            ax.bar(np.arange(3) + (k - 1.5) * w,
-                   [mean(R, m, "charge_wait_min", piles=p, fleet_size=f, deviation="chase") for p in (2, 3, 4)],
-                   w, color=c, label=lab)
+        for k, (m, lab, c) in enumerate(RULES):
+            x = np.arange(3) + (k - 2.5) * w
+            sel = [dict(piles=p, fleet_size=f, deviation="chase", demand_k=3.0) for p in (2, 3, 4)]
+            q = [mean(R, m, "charge_wait_min", **s) for s in sel]
+            d = [mean(R, m, "to_station_min", **s) for s in sel]
+            ax.bar(x, q, w, color=c, label=lab)
+            ax.bar(x, d, w, bottom=q, color=c, alpha=0.35, edgecolor="none")
+            for xi, tot in zip(x, np.add(q, d)):
+                if tot > YMAX:                      # off-scale bars carry their total
+                    ax.text(xi, YMAX * 0.98, f"{tot:.0f}", ha="center", va="top", fontsize=5.5, rotation=90)
         ax.set_xticks(range(3), ["2", "3", "4"])
         ax.set_xlabel("Chargers per station")
+        ax.set_ylim(0, YMAX)
         ax.set_title(f"({'a' if f == 160 else 'b'}) {f} vehicles")
-    axes[0].set_ylabel("Queue at charger (min per session)")
-    fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc="upper center", ncol=4)
-    fig.tight_layout(rect=(0, 0, 1, 0.88))
+    axes[0].set_ylabel("Min per session")
+    fig.legend(*axes[0].get_legend_handles_labels(), frameon=False, loc="upper center", ncol=3)
+    fig.tight_layout(rect=(0, 0, 1, 0.82))
     fig.savefig(OUT / "fig_scarcity.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
-def fig_charging(R):
-    fig, ax = plt.subplots(figsize=(3.5, 2.3))
-    w = 0.2
-    cols = [("rob_mpc_nc", "Compliance-blind, static capacity", "#BBBBBB"),
-            ("rob_mpc_nc_bc", "Compliance-blind, backlog wait", "#0072B2"),
-            ("ermpc", "Compliance-aware, static capacity", "#999999"),
-            ("ermpc_bc", "Compliance-aware, backlog wait", "#D55E00")]
-    for k, (m, lab, c) in enumerate(cols):
-        vals = [mean(R, m, "charge_wait_min", demand_k=d, fleet_size=f, deviation="chase") for d, f in SETTINGS]
-        ax.bar(np.arange(3) + (k - 1.5) * w, vals, w, color=c, label=lab)
-    ax.set_xticks(range(3), [f"{d}x demand\n{f} vehicles" for d, f in SETTINGS])
-    ax.set_ylabel("Queue at charger (min per session)")
-    fig.legend(*ax.get_legend_handles_labels(), frameon=False, loc="upper center", ncol=2, fontsize=6)
-    fig.tight_layout(rect=(0, 0, 1, 0.84))
-    fig.savefig(OUT / "fig_charging.pdf", bbox_inches="tight")
+def fig_avshare(R):
+    """Drive + queue per session against the AV share (3x demand, 160 vehicles, chase drivers)."""
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.3))
+    rhos = (0.0, 0.5, 1.0)
+    for ax, pl in zip(axes, (4, 2)):
+        for m, lab, c in RULES[2:]:
+            ax.plot(rhos, [mean(R, m, "to_charger_min", av_rate=a, piles=pl, fleet_size=160) for a in rhos],
+                    marker="o", ms=3, lw=1, color=c, label=lab)
+        ax.set_xticks(rhos)
+        ax.set_xlabel("Share of autonomous vehicles")
+        ax.set_title(f"({'a' if pl == 4 else 'b'}) {pl} chargers per station")
+    axes[0].set_ylabel("Drive + queue (min per session)")
+    axes[1].legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(OUT / "fig_avshare.pdf", bbox_inches="tight")
     plt.close(fig)
+
+
+def _times(R):
+    for r in R:
+        r["to_station_min"] = r["veh_h_to_station"] * 60 / max(1, r["n_charges"])
+        r["to_charger_min"] = r["to_station_min"] + r["charge_wait_min"]
+    return R
 
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     main = load("final_main_k3") + load("final_main_k2")
     fig_fallback(main)
-    fig_charging(main)
     fig_mix(load("final_mix"))
     fig_rho(load("final_rho"))
     fig_mechanism(load("cf_main_k3"))
     fig_level(load("het_level"))
-    fig_scarcity(load("charge"))
+    st = _times(load("st_k3") + load("st_bs_k3"))
+    fig_scarcity(st)
+    fig_avshare(_times(load("st_av")) + [r for r in st if r["av_rate"] == 0.5 and r["deviation"] == "chase"])
     print("figures written to", OUT)

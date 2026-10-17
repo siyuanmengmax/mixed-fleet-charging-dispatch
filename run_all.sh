@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-runs every experiment of the paper (about 1 h with 30 worker processes on a 32-thread
+# Re-runs every experiment of the paper (about 1.5 h with 30 worker processes on a 32-thread
 # desktop CPU). Each command writes chicago_loop/results/<tag>_<timestamp>.json.
 set -e
 R="python -m chicago_loop.experiments.run_eval --seeds 20 --workers ${WORKERS:-30} --idle_humans self"
@@ -9,13 +9,21 @@ MS="rob_mpc_nc_bc ermpc_bc ermpc_ms_bc ermpc_msf_bc ermpc_ms2_bc ermpc_ms5_bc"
 MG="det_mpc_bc det_mpc_pi_bc nc_m0_bc naive_plugin_bc"
 CF="self rob_mpc_nc_bc ermpc_bc ermpc_nofb_bc ermpc_fbonly_bc ermpc_flat_bc"
 
-# Main experiment, demand margin, and station choice
+# Main experiment and demand margin
 $R --methods $M7 --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation chase stay hotspot --tag s_final_main_k3
 $R --methods $M7 --demand_k 2 --fleet 120 --av_rates 0.5 --deviation chase stay hotspot --tag s_final_main_k2
 $R --methods $MG --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation chase stay hotspot --tag s_margin_k3
 $R --methods $MG --demand_k 2 --fleet 120 --av_rates 0.5 --deviation chase stay hotspot --tag s_margin_k2
-$R --methods self rob_mpc_nc rob_mpc_nc_bo rob_mpc_nc_bc det_mpc det_mpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 \
-   --deviation chase stay hotspot --piles 2 3 4 --tag s_charge
+
+# Station choice: all rules, AV share, and the queue by station source
+ST="self det_mpc det_mpc_bc rob_mpc_nc rob_mpc_nc_bc rob_mpc_nc_bo rob_mpc_nc_nr rob_mpc_nc_na rob_mpc_nc_sq rob_mpc_nc_sm rob_mpc_nc_sh"
+S4="rob_mpc_nc_bc rob_mpc_nc_bs rob_mpc_nc_sm rob_mpc_nc_na"
+$R --methods $ST --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_k3
+$R --methods $ST --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_k2
+$R --methods rob_mpc_nc_bs --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 3 4 --tag st_bs_k3
+$R --methods rob_mpc_nc_bs --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_bs_k2
+$R --methods $S4 --demand_k 3 --fleet 120 160 --av_rates 0 1 --deviation chase --piles 2 4 --tag st_av
+$R --methods $S4 --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 --tag st_diag
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix

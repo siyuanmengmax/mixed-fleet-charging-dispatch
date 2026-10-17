@@ -14,9 +14,11 @@ At each control step:
 
 x̃_{ij} is the supply of vehicle i to zone j: x_{ij} for a compliance-blind dispatcher, or the
 expected supply under the compliance coefficients of LogitComplianceModel (followed order,
-fallback position after an ignored order, and the vehicle left without an order). With
-charge_wait_weight > 0 the station wait w_{is} is predicted by StationState.predicted_wait and the
-static one-interval capacity constraint (Γ_c-robust, duals z_s, p_{is}) is dropped.
+fallback position after an ignored order, and the vehicle left without an order). The
+station choice follows one of STATION_RULES: with charge_wait_weight > 0 the station wait w_{is} is
+predicted by StationState.predicted_wait (or a heuristic rule) and the one-interval capacity
+constraint (Γ_c-robust, duals z_s, p_{is}) is dropped; otherwise a capacity constraint with each
+vehicle's own charging time q_i limits the stations.
 """
 
 from __future__ import annotations
@@ -34,8 +36,28 @@ import pulp
 from chicago_loop.env.fleet import SOC_THRESHOLD as SOC_THRESHOLD_
 
 from chicago_loop.env.fleet import StationState, VehicleState, VehicleType
+from chicago_loop.env.fleet import BATTERY_CAPACITY_KWH, MAX_CHARGE_POWER_KW
+
+# Full session from the SOC threshold to the target SOC (0.2 -> 0.8 at 50 kW: 43.2 min)
+SESSION_MIN = (0.80 - SOC_THRESHOLD_) * BATTERY_CAPACITY_KWH / MAX_CHARGE_POWER_KW * 60.0
+UNAVAILABLE_WAIT_MIN = 100.0    # "available" rule: stations without an idle charger rank after all others
 
 logger = logging.getLogger(__name__)
+
+# Station-choice rules for the vehicles that must charge.
+#   static     capacity free in the next interval, Σ_i q_i·ỹ_is ≤ C_s + v_s (a vehicle may get no station)
+#   static_mc  the same constraint, but every vehicle that must charge receives a station
+#   horizon    capacity over one full session H: Σ_n max(0, H − r_sn) minus the charging minutes of
+#              the vehicles queued or driving to the station
+#   wait       predicted wait from replaying the backlog (StationState.predicted_wait)
+#   wait_seq   the same, with the vehicles that must charge in this step assigned one at a time
+#              (nearest first), each added to the backlog of its station before the next is assigned
+#   wait_seq_h the same, but human drivers are assigned first, each to the station he would choose
+#              himself (the nearest), and the AVs are then assigned around them
+#   nearest    nearest station (w = 0)
+#   available  nearest station with an idle charger, otherwise the nearest station
+#   queue      shortest-queue estimate w = max(0, n_s + 1 − N_s)·H/N_s from the vehicle count only
+STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_seq_h", "nearest", "available", "queue")
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +162,7 @@ class ERMPCOptimizer:
         demand_margin: Optional[float] = None,
         idle_supply: bool = True,
         charge_wait_weight: float = 0.0,
+        station_rule: Optional[str] = None,
         expected_cost: bool = True,
         fallback_credit: bool = True,
         pi_discount: bool = True,
@@ -167,9 +190,13 @@ class ERMPCOptimizer:
         self.pi_discount = pi_discount
         # a human driver left without an order takes his fallback action (credit his fallback zone)
         self.idle_to_fallback = idle_to_fallback
-        # With the backlog wait priced, the static one-interval capacity constraint is dropped and
-        # every vehicle below the SOC threshold must receive a station.
-        self.static_charge_cap = charge_wait_weight <= 0      # number of human drivers per zone whose compliance is adversarial
+        # Station choice of the vehicles below the SOC threshold (see STATION_RULES). The wait rules
+        # price a station wait w_is with weight γ_w and drop the capacity constraint; the capacity
+        # rules keep it. Every rule except "static" gives each vehicle that must charge a station.
+        self.station_rule = station_rule or ("wait" if charge_wait_weight > 0 else "static")
+        assert self.station_rule in STATION_RULES, self.station_rule
+        self.static_charge_cap = self.station_rule in ("static", "static_mc", "horizon")
+        self.must_charge = self.station_rule != "static"
         self.solver = solver
         self.time_limit = time_limit
         self.mip_gap = mip_gap
@@ -227,6 +254,9 @@ class ERMPCOptimizer:
 
         v_map = {v.vehicle_id: v for v in vehicles}
         s_map = {s.station_id: s for s in stations}
+        if self.station_rule.startswith("wait_seq"):  # the sequential assignment extends copies of the backlogs
+            import copy
+            s_map = {k: copy.deepcopy(st) for k, st in s_map.items()}
 
         prob = pulp.LpProblem("SOMFD", pulp.LpMinimize)
 
@@ -321,7 +351,15 @@ class ERMPCOptimizer:
             return tt if p >= 1.0 else p * tt + (1.0 - p) * tau_self(i)
 
         def wait_at(i, s):
-            return s_map[s].predicted_wait(inp.travel_time_to_station.get((i, s), 0.0))
+            st = s_map[s]
+            if self.station_rule == "nearest":
+                return 0.0
+            if self.station_rule == "available":
+                return 0.0 if st.idle_piles > 0 else UNAVAILABLE_WAIT_MIN
+            if self.station_rule == "queue":
+                n = len(st.in_service) + sum(1 for eta, _ in st.committed if eta <= 0.0)
+                return max(0, n + 1 - st.num_piles) * SESSION_MIN / st.num_piles
+            return st.predicted_wait(inp.travel_time_to_station.get((i, s), 0.0))
 
         def e_wait(i, s):
             p = pi_ij(i, s, station=True)
@@ -330,6 +368,29 @@ class ERMPCOptimizer:
             a = inp.compliance_coeffs[i].get("self_action")
             w_self = wait_at(i, a.station_id) if isinstance(a, ChargeAction) else 0.0
             return p * wait_at(i, s) + (1.0 - p) * w_self
+
+        # Sequential station choice: fix the station of each vehicle that must charge in turn and
+        # add it to that station's backlog, so later vehicles of the same step see it.
+        seq_station = {}
+        if self.station_rule.startswith("wait_seq") and s_ids:
+            tts = inp.travel_time_to_station
+            humans_first = self.station_rule == "wait_seq_h"
+            is_h = lambda i: humans_first and v_map[i].vehicle_type != VehicleType.AV
+            must = sorted((i for i in v_ids if v_map[i].soc < SOC_THRESHOLD_),
+                          key=lambda i: (not is_h(i), min(tts.get((i, s), 0.0) for s in s_ids)))
+            for i in must:
+                if is_h(i):
+                    best = min(s_ids, key=lambda s: tts.get((i, s), 0.0))
+                else:
+                    best = min(s_ids, key=lambda s: self.beta * e_tau(i, s, station=True)
+                               + self.charge_wait_weight * e_wait(i, s))
+                seq_station[i] = best
+                # with compliance coefficients, a human driver joins the backlog of the station he
+                # most likely drives to (the order, or his fallback station)
+                a = inp.compliance_coeffs.get(i, {}).get("self_action")
+                dest = (a.station_id if isinstance(a, ChargeAction) and pi_ij(i, best, station=True) < 0.5
+                        else best)
+                s_map[dest].committed.append((tts.get((i, dest), 0.0), v_map[i].nominal_charge_duration_min()))
 
         reposition_cost = self.beta * pulp.lpSum(
             e_tau(i, j) * x[(i, j)]
@@ -340,8 +401,8 @@ class ERMPCOptimizer:
             e_tau(i, s, station=True) * y[(i, s)]
             for i in v_ids for s in s_ids
         )
-        if self.charge_wait_weight > 0:
-            # Backlog-predicted wait at the station (vehicles charging, queued, and driving there)
+        if not self.static_charge_cap:
+            # Station wait of the chosen rule (backlog replay, or one of the heuristic baselines)
             charge_cost += self.charge_wait_weight * pulp.lpSum(
                 e_wait(i, s) * y[(i, s)]
                 for i in v_ids for s in s_ids if v_map[i].soc < SOC_THRESHOLD_)
@@ -379,8 +440,11 @@ class ERMPCOptimizer:
             else:                                   # below the threshold a vehicle must charge
                 for j in z_ids:
                     prob += x[(i, j)] == 0, f"soc_trip_{i}_{j}"
-                if not self.static_charge_cap and s_ids:
+                if self.must_charge and s_ids:
                     prob += pulp.lpSum(y[(i, s)] for s in s_ids) == 1, f"must_charge_{i}"
+                for s in (s_ids if i in seq_station else []):
+                    if s != seq_station[i]:
+                        prob += y[(i, s)] == 0, f"seq_station_{i}_{s}"
 
         # ------------------------------------------------------------------
         # Demand coverage with a safety margin and Γ_π compliance protection
@@ -432,12 +496,19 @@ class ERMPCOptimizer:
         # p_{is} + z_s ≥ q̂_i·y_{is}                                    ∀i,s
         # ------------------------------------------------------------------
 
-        from chicago_loop.env.fleet import NOMINAL_CHARGE_DURATION_MIN, CHARGE_DURATION_UNCERTAINTY
+        from chicago_loop.env.fleet import CHARGE_DURATION_UNCERTAINTY
 
         for s in (s_ids if self.static_charge_cap else []):
-            C_s = s_map[s].available_capacity_min(inp.delta_t)
+            st = s_map[s]
+            if self.station_rule == "horizon":
+                busy = sorted(st.in_service)[: st.num_piles]
+                C_s = (sum(max(0.0, SESSION_MIN - r) for r in busy) + (st.num_piles - len(busy)) * SESSION_MIN
+                       - sum(d for _, d in st.committed))
+            else:
+                C_s = st.available_capacity_min(inp.delta_t)
+            # q_i: the vehicle's own charging time to the target SOC (as in the simulator)
             prob += (
-                pulp.lpSum(NOMINAL_CHARGE_DURATION_MIN * y_tilde(i, s) for i in v_ids)
+                pulp.lpSum(v_map[i].nominal_charge_duration_min() * y_tilde(i, s) for i in v_ids)
                 + self.gamma_c * z_rob[s]
                 + pulp.lpSum(p_rob[(i, s)] for i in v_ids)
                 <= C_s + sigma_c[s],

@@ -69,6 +69,7 @@ class Veh:
     stranded: bool = False
     since: float = 0.0              # start of the current status (min)
     time: dict = field(default_factory=dict)   # minutes spent in each status
+    st_src: str = ""                # how the current station was chosen: av | h_follow | h_own
 
 
 @dataclass
@@ -81,6 +82,7 @@ class Req:
 class Stats:
     waits: list = field(default_factory=list)        # (creation time, wait, served)
     charge_waits: list = field(default_factory=list)
+    charge_waits_by: dict = field(default_factory=dict)   # st_src -> waits
     n_charges: int = 0
     n_human_assign: int = 0
     n_complied: int = 0
@@ -262,6 +264,7 @@ class ShiftEnv:
         _, kw = self.st_cfg[s]
         if t >= self.measure_from:
             self.stats.charge_waits.append(t - v.t_free)
+            self.stats.charge_waits_by.setdefault(v.st_src or "h_own", []).append(t - v.t_free)
             self.stats.n_charges += 1
         dur = max(0.0, SOC_TARGET - v.soc) * BATTERY_KWH / kw * 60.0
         self._mark(v, t)
@@ -380,12 +383,16 @@ class ShiftEnv:
                     self.stats.n_complied += 1
                 else:
                     target = own
+                v.st_src = "h_follow" if ok else "h_own"
             elif target is None:
                 target = self.self_preferred(v)
+            if v.av:
+                v.st_src = "av"
             self._go(v, *target)
         # vehicles that must charge and received no order go to the nearest station
         for v in self.vacant():
             if self._must_charge(v):
+                v.st_src = "av" if v.av else "h_own"
                 self._go(v, *self.self_preferred(v))
             elif self.idle_humans == "self" and not v.av and v.vid not in handled:
                 self._go(v, *self.self_preferred(v))
@@ -428,6 +435,11 @@ class ShiftEnv:
             "n_charges": self.stats.n_charges,
             "charge_wait_min": float(np.mean(self.stats.charge_waits)) if self.stats.charge_waits else 0.0,
             "n_stranded": sum(v.stranded for v in self.veh.values()),
+            # queue per session by how the station was chosen: AV, human who followed the order,
+            # human who ignored it or received none (charge_wait_<src>, n_charges_<src>)
+            **{f"charge_wait_{k}": float(np.mean(self.stats.charge_waits_by.get(k, [np.nan])))
+               for k in ("av", "h_follow", "h_own")},
+            **{f"n_charges_{k}": len(self.stats.charge_waits_by.get(k, [])) for k in ("av", "h_follow", "h_own")},
             "compliance_rate": self.stats.n_complied / max(1, self.stats.n_human_assign),
             "soc_end_mean": float(np.mean([v.soc for v in self.veh.values()])),
             # fleet time use over the shift (vehicle-hours) and shares of fleet time
