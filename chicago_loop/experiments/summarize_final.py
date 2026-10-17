@@ -493,6 +493,23 @@ def source_table():
         print(row)
 
 
+def cost_table():
+    """Solver time per dispatch step (144 steps per shift) and the 40-vehicle dispatch limit."""
+    print("\nCOMPUTATION: mean solver time per step (s), main runs (4 chargers)")
+    R = load("final_main_k3") + load("final_main_k2")
+    print(" ".join(f"{m}={np.mean([r['solve_s'] for r in R if r['method'] == m]) / 144:.3f}"
+                   for m in ("rob_mpc_nc_bc", "ermpc_bc", "ermpc_rpi_bc")))
+    S = loads("st_k3", "st_k2", "st_bs_k3", "st_bs_k2", "st_bj_k3", "st_bj_k2")
+    print("station runs: " + " ".join(f"{SHORT(m)}={np.mean([r['solve_s'] for r in S if r['method'] == m]) / 144:.3f}"
+                                      for m in ("rob_mpc_nc_bc", "rob_mpc_nc_bs", MAIN)))
+    print("DISPATCH LIMIT (joint rule runs): share of steps at the 40-vehicle limit; must-charge vehicles per shift "
+          "outside the dispatched subset / all must-charge vehicles")
+    for k, f in ((3.0, 160), (3.0, 120), (2.0, 120)):
+        L = [r for r in S if r["method"] == MAIN and r["demand_k"] == k and r["fleet_size"] == f]
+        print(f"x{k:g} {f}: capped {np.mean([r['share_steps_capped'] for r in L]):.2f} | "
+              f"outside {np.mean([r['n_must_charge_unbatched'] for r in L]):.2f} / {np.mean([r['n_must_charge'] for r in L]):.1f}")
+
+
 if __name__ == "__main__":
     main_tables()
     misspec_table()
@@ -507,6 +524,7 @@ if __name__ == "__main__":
     station_table()
     pooled_table()
     batch_table()
+    cost_table()
     far_table()
     fix_table()
     joint_table()
