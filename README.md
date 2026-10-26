@@ -66,6 +66,7 @@ Every method sees the same demand realization and the same compliance draws for 
 | suffix `_br` / `_bl` | Sequential rule with random order / lowest SOC first |
 | suffix `_sm` / `_sh` | Capacity constraint that gives every vehicle that must charge a station / capacity over one session |
 | suffix `_nr` / `_na` / `_sq` | Nearest station / nearest station with an idle charger / shortest estimated queue |
+| suffix `_ch` | Charger-level joint assignment after Ma et al. (2024): one vehicle per charger, each charger free after the sessions reserved on it; linear assignment |
 
 In the result files, `deviation` is the fallback type of drivers who ignore an order (`chase`, `stay`, `hotspot` for the favourite zone, or `mix<p>` with a share `p` of stay-type drivers), `idle_humans` is what a human driver without an order does (`self`: takes the fallback action, the main assumption; `stay`: waits in place), `piles` is the number of chargers per station, and `alpha_mean` and `alpha_sd` set the persistent driver compliance propensity (`alpha_mean` is the order-acceptance constant κ of the paper). Waits are in minutes; `wait_all_min` counts abandoned requests as 10 min, `charge_wait_min` is the queue at chargers per session, and `charge_wait_av`, `charge_wait_h_follow`, `charge_wait_h_own` split it by AVs, human drivers who followed the station order, and human drivers at a station of their own choice.
 

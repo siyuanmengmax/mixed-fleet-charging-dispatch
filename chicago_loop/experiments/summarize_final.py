@@ -325,6 +325,89 @@ def pooled_table():
               f"t p={stats.ttest_1samp(dm, 0).pvalue:.1e}")
 
 
+def realization_test():
+    """Tests over the 20 demand realizations, which are the independent units (the 27 settings share them):
+    per realization, the difference nc_bj minus rule in drive + queue per session averaged over the 27 settings,
+    then a paired t-test over realizations; and Holm-corrected counts of settings with a significant difference."""
+    R = _with_total(loads("st_k3", "st_k2", "st_bs_k3", "st_bs_k2", "st_bj_k3", "st_bj_k2"))
+    if not R:
+        return
+    print("\nTESTS OVER REALIZATIONS (27 station settings): nc_bj minus rule, drive + queue per session; mean over settings "
+          "per realization (mean, 95% CI, t-test p, realizations with a negative mean); Holm-corrected settings shorter/longer")
+    S = list(_settings(R))
+    for b in ("rob_mpc_nc_na", "rob_mpc_nc_sm", "rob_mpc_nc_bc", "rob_mpc_nc_bs"):
+        per_seed, pvals, signs = {}, [], []
+        for _, sel in S:
+            x = {r["seed"]: r["to_charger_min"] for r in R if r["method"] == MAIN and all(r.get(k) == v for k, v in sel.items())}
+            y = {r["seed"]: r["to_charger_min"] for r in R if r["method"] == b and all(r.get(k) == v for k, v in sel.items())}
+            d = np.array([x[s] - y[s] for s in sorted(x) if s in y])
+            for s in sorted(x):
+                if s in y:
+                    per_seed.setdefault(s, []).append(x[s] - y[s])
+            pvals.append(stats.ttest_1samp(d, 0).pvalue)
+            signs.append(np.sign(d.mean()))
+        m = np.array([np.mean(v) for v in per_seed.values()])
+        h = stats.t.ppf(0.975, len(m) - 1) * m.std(ddof=1) / np.sqrt(len(m))
+        order = np.argsort(pvals)
+        rej = np.zeros(len(pvals), bool)
+        for rank, i in enumerate(order):     # Holm step-down at 0.05
+            if pvals[i] > 0.05 / (len(pvals) - rank):
+                break
+            rej[i] = True
+        print(f"{SHORT(b):6s} {m.mean():+.3f}±{h:.3f} p={stats.ttest_1samp(m, 0).pvalue:.1e} "
+              f"negative {int((m < 0).sum())}/{len(m)} | Holm shorter {int((rej & (np.array(signs) < 0)).sum())} "
+              f"longer {int((rej & (np.array(signs) > 0)).sum())} of {len(pvals)}")
+
+
+def charger_table():
+    """Charger-level assignment after Ma et al. (2024), one vehicle per charger (nc_ch, st_ch_* runs), against
+    the joint rule. The st_ch runs repeat nc_bj; it must reproduce the stored nc_bj runs exactly."""
+    C = _with_total(loads("st_ch_k3", "st_ch_k2", "st_ch_far"))
+    if not C:
+        return
+    old = _with_total(loads("st_bj_k3", "st_bj_k2", "st_far"))
+    ok = {(r["seed"], r["demand_k"], r["fleet_size"], r["piles"], r["deviation"], r.get("station_km", 0.0)): r["to_charger_min"]
+          for r in old if r["method"] == MAIN}
+    rep = [abs(ok[k] - r["to_charger_min"]) < 1e-9 for r in C if r["method"] == MAIN
+           for k in [(r["seed"], r["demand_k"], r["fleet_size"], r["piles"], r["deviation"], r.get("station_km", 0.0))] if k in ok]
+    print(f"\nCHARGER-LEVEL ASSIGNMENT (Ma et al. 2024): nc_bj reproduced in {sum(rep)}/{len(rep)} runs")
+    for r in C:
+        r["station_km"] = r.get("station_km", 0.0)
+        r["drive_min"] = r["to_charger_min"] - r["charge_wait_min"]
+    for d in (0.0, 1.5, 3.0):
+        D = [r for r in C if r["station_km"] == d]
+        S = list(_settings(D))
+        print(f"-- d = {d:g} km: queue / drive per session nc_ch, nc_bj; nc_bj minus nc_ch: drive + queue, queue, passenger wait")
+        per_seed, pv, mus, cnt = {}, [], [], [0, 0]
+        for name, sel in S:
+            mu, h = paired(D, MAIN, "rob_mpc_nc_ch", "to_charger_min", **sel)
+            cnt[0] += mu < -h
+            cnt[1] += mu > h
+            mus.append(mu)
+            x = {r["seed"]: r["to_charger_min"] for r in D if r["method"] == MAIN and all(r[k] == v for k, v in sel.items())}
+            y = {r["seed"]: r["to_charger_min"] for r in D if r["method"] == "rob_mpc_nc_ch" and all(r[k] == v for k, v in sel.items())}
+            dd = np.array([x[s] - y[s] for s in sorted(x)])
+            pv.append((stats.ttest_1samp(dd, 0).pvalue, np.sign(dd.mean())))
+            for s in sorted(x):
+                per_seed.setdefault(s, []).append(x[s] - y[s])
+            print(f"{name} " + " ".join(f"{mean(D, m, 'charge_wait_min', **sel):.2f}/{mean(D, m, 'drive_min', **sel):.2f}"
+                                         for m in ("rob_mpc_nc_ch", MAIN))
+                  + f" | {fmt(mu, h)} {fmt(*paired(D, MAIN, 'rob_mpc_nc_ch', 'charge_wait_min', **sel))}"
+                  f" {fmt(*paired(D, MAIN, 'rob_mpc_nc_ch', 'wait_all_min', **sel))}")
+        m = np.array([np.mean(v) for v in per_seed.values()])
+        h = stats.t.ppf(0.975, len(m) - 1) * m.std(ddof=1) / np.sqrt(len(m))
+        order = sorted(range(len(pv)), key=lambda i: pv[i][0])
+        rej = set()
+        for rank, i in enumerate(order):
+            if pv[i][0] > 0.05 / (len(pv) - rank):
+                break
+            rej.add(i)
+        print(f"d = {d:g} summary: nc_bj shorter/longer {cnt[0]}/{cnt[1]} of {len(S)}, range {min(mus):+.2f}..{max(mus):+.2f}; "
+              f"lower mean in {sum(x < 0 for x in mus)}; over realizations {m.mean():+.3f}±{h:.3f} "
+              f"p={stats.ttest_1samp(m, 0).pvalue:.1e}, negative {int((m < 0).sum())}/{len(m)}; "
+              f"Holm shorter {sum(pv[i][1] < 0 for i in rej)} longer {sum(pv[i][1] > 0 for i in rej)}")
+
+
 def batch_table():
     """Largest number of must-charge vehicles assigned together in one step (st_nmax runs, joint rule)."""
     R = loads("st_nmax_k3", "st_nmax_k2")
@@ -523,6 +606,8 @@ if __name__ == "__main__":
     margin_table()
     station_table()
     pooled_table()
+    realization_test()
+    charger_table()
     batch_table()
     cost_table()
     far_table()

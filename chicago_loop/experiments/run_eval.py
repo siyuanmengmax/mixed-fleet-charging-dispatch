@@ -36,7 +36,7 @@ MAX_BATCH = 40          # vehicles per MILP (size-limited Gurobi license: 2,000 
 THETA_RANGE = (1.0, 2.5)  # behavioural uncertainty behind the compliance uncertainty set
 OPT = dict(solver="gurobi", time_limit=10.0, mip_gap=0.02)
 STATION_SUFFIX = {"_bc": "wait", "_bs": "wait_seq", "_bf": "wait_fix", "_bj": "wait_joint", "_br": "wait_seq_rand", "_bl": "wait_seq_soc", "_bh": "wait_seq_h", "_bo": "wait", "_sm": "static_mc", "_sh": "horizon", "_nr": "nearest",
-                  "_na": "available", "_sq": "queue"}
+                  "_na": "available", "_sq": "queue", "_ch": "charger"}
 
 
 def make_opt(method, idle_humans="stay"):
@@ -48,7 +48,8 @@ def make_opt(method, idle_humans="stay"):
     does the same with a wait predicted from the vehicles at the station only (no vehicles en route).
     Station-choice baselines (STATION_SUFFIX): "_sm" the one-interval capacity constraint with every
     vehicle that must charge assigned a station, "_sh" capacity over one full session, "_nr" nearest
-    station, "_na" nearest station with an idle charger, "_sq" shortest-queue estimate; "_bf" fixes the per-vehicle argmin before the solve without the sequential update; "_bs" is the
+    station, "_na" nearest station with an idle charger, "_sq" shortest-queue estimate, "_ch" charger-level
+    assignment after Ma et al. (2024), one vehicle per charger; "_bf" fixes the per-vehicle argmin before the solve without the sequential update; "_bs" is the
     backlog wait with the vehicles of one step assigned sequentially, "_bh" the same with human
     drivers sent first to the station they would choose themselves; "_br" and "_bl" assign the
     vehicles in random order and lowest SOC first, and "_bj" assigns them jointly (exact). Without a

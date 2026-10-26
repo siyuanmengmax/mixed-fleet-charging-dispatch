@@ -65,8 +65,12 @@ logger = logging.getLogger(__name__)
 #   nearest    nearest station (w = 0)
 #   available  nearest station with an idle charger, otherwise the nearest station
 #   queue      shortest-queue estimate w = max(0, n_s + 1 − N_s)·H/N_s from the vehicle count only
+#   charger    charger-level assignment after Ma et al. (2024): the vehicles that must charge in this step
+#              are assigned jointly to individual chargers, at most one per charger, each charger free
+#              after the sessions reserved on it (vehicles in service, queued, and en route, replayed
+#              FCFS); cost β·τ_is + γ_w·max(0, free_sn − τ_is), solved as a linear assignment
 JOINT_MAX = 12   # larger groups (never observed) fall back to the sequential rule
-STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_fix", "wait_seq_rand", "wait_seq_soc", "wait_joint", "wait_seq_h", "nearest", "available", "queue")
+STATION_RULES = ("static", "static_mc", "horizon", "wait", "wait_seq", "wait_fix", "wait_seq_rand", "wait_seq_soc", "wait_joint", "wait_seq_h", "nearest", "available", "queue", "charger")
 
 
 # ---------------------------------------------------------------------------
@@ -295,6 +299,28 @@ class ERMPCOptimizer:
             mask ^= sub
         return out
 
+    def _charger_assign(self, must, s_ids, s_map, tts):
+        """Charger-level joint assignment (after Ma et al. 2024): one vehicle per charger, each charger
+        free after the sessions reserved on it; a linear assignment of the vehicles to chargers."""
+        if not must:
+            return {}
+        import heapq
+        from scipy.optimize import linear_sum_assignment
+        cols = []
+        for s in s_ids:
+            st = s_map[s]
+            free = sorted(st.in_service)[: st.num_piles]
+            free += [0.0] * (st.num_piles - len(free))
+            heapq.heapify(free)
+            for eta, dur in sorted(st.committed):          # reserved sessions, in order of arrival
+                heapq.heappush(free, max(eta, heapq.heappop(free)) + dur)
+            cols += [(s, f) for f in free]
+        cost = np.array([[self.beta * tts.get((i, s), 0.0)
+                          + self.charge_wait_weight * max(0.0, f - tts.get((i, s), 0.0)) for s, f in cols]
+                         for i in must])
+        rows, cs = linear_sum_assignment(cost)              # len(must) <= number of chargers
+        return {must[r]: cols[c][0] for r, c in zip(rows, cs)}
+
     def solve(self, inp: DispatchInput) -> DispatchResult:
         t0 = time.time()
 
@@ -429,6 +455,9 @@ class ERMPCOptimizer:
         # Sequential station choice: fix the station of each vehicle that must charge in turn and
         # add it to that station's backlog, so later vehicles of the same step see it.
         seq_station = {}
+        if self.station_rule == "charger" and s_ids:
+            seq_station = self._charger_assign([i for i in v_ids if v_map[i].soc < SOC_THRESHOLD_],
+                                               s_ids, s_map, inp.travel_time_to_station)
         if self.station_rule.startswith(("wait_seq", "wait_fix", "wait_joint")) and s_ids:
             tts = inp.travel_time_to_station
             humans_first = self.station_rule == "wait_seq_h"

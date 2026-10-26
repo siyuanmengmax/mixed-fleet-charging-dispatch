@@ -122,6 +122,8 @@ RULES = [("self", "Self-dispatch", "#BBBBBB"),
          ("rob_mpc_nc_bc", "Backlog wait, independent", "#0072B2"),
          ("rob_mpc_nc_bs", "Backlog wait, sequential", "#CC79A7"),
          ("rob_mpc_nc_bj", "Backlog wait, joint", "#D55E00")]
+# Fig. 2 adds the charger-level joint assignment after Ma et al. (2024) before the joint rule
+SCARCITY_RULES = RULES[:-1] + [("rob_mpc_nc_ch", "Charger-level, joint", "#009E73")] + RULES[-1:]
 
 
 YMAX = 12.0
@@ -130,10 +132,10 @@ YMAX = 12.0
 def fig_scarcity(R):
     """Drive to the station and queue per session by chargers per station (3x demand, chase drivers)."""
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.6), sharey=True)
-    w = 0.115
+    w = 0.105
     for ax, f in zip(axes, (160, 120)):
-        for k, (m, lab, c) in enumerate(RULES):
-            x = np.arange(3) + (k - 3) * w
+        for k, (m, lab, c) in enumerate(SCARCITY_RULES):
+            x = np.arange(3) + (k - 3.5) * w
             sel = [dict(piles=p, fleet_size=f, deviation="chase", demand_k=3.0) for p in (2, 3, 4)]
             q = [mean(R, m, "charge_wait_min", **s) for s in sel]
             d = [mean(R, m, "to_station_min", **s) for s in sel]
@@ -187,6 +189,6 @@ if __name__ == "__main__":
     fig_mechanism(load("cf_main_k3"))
     fig_level(load("het_level"))
     st = _times(loads("st_k3", "st_bs_k3", "st_bj_k3"))
-    fig_scarcity(st)
+    fig_scarcity(st + _times([r for r in loads("st_ch_k3") if r["method"] == "rob_mpc_nc_ch"]))
     fig_avshare(_times(loads("st_av", "st_av_bj")) + [r for r in st if r["av_rate"] == 0.5 and r["deviation"] == "chase"])
     print("figures written to", OUT)
