@@ -350,6 +350,29 @@ x3 2ch 120 stay    1.91/16.70 1.86/16.64 | -0.11±0.37  -0.05±0.31  -0.00±0.01
 x3 2ch 120 hotspot 2.37/16.66 2.13/16.70 | -0.20±0.50  -0.25±0.46  +0.02±0.02*
 d = 3 summary: nc_bj shorter/longer 1/0 of 12, range -0.33..+0.02; lower mean in 11; over realizations -0.136±0.084 p=3.1e-03, negative 16/20; Holm shorter 0 longer 0
 
+PUBLIC DC FAST-CHARGING SITES OUTSIDE THE LOOP: drive / queue per session for nc_na / nc_sm / nc_bo / nc_bc / nc_bs / nc_ch / nc_bj; then nc_bc-nc_bo, nc_bj-nc_bc, nc_bj-nc_bs, nc_bj-nc_ch, nc_bj-nc_na, nc_bj-nc_sm, nc_ch-nc_na
+x3 160 chase   13.4/6.18 18.7/2.38 13.3/8.93 13.0/5.74 12.9/4.13 13.0/4.21 13.1/4.21 | -3.19±1.36* -1.49±0.98* +0.21±0.64  +0.02±0.17  -2.26±1.48* -3.79±1.48* -2.27±1.51*
+x3 160 stay    13.6/6.87 19.6/2.18 13.4/8.24 13.2/4.18 13.3/2.89 13.1/2.72 13.1/2.73 | -4.06±1.14* -1.55±0.76* -0.27±0.38  +0.07±0.34  -4.58±1.49* -5.93±1.14* -4.66±1.45*
+x3 160 hotspot 13.0/6.91 18.0/3.76 13.1/9.26 12.8/4.78 12.8/3.79 12.8/3.86 12.8/3.83 | -4.48±0.74* -0.96±0.59* +0.07±0.49  -0.01±0.24  -3.34±1.11* -5.10±1.33* -3.33±1.16*
+x3 120 chase   12.2/6.60 18.6/1.19 12.0/7.59 12.0/4.43 11.9/2.82 11.9/2.68 12.0/2.64 | -3.17±1.58* -1.78±1.15* -0.17±0.64  -0.00±0.42  -4.16±1.29* -5.18±0.98* -4.16±1.24*
+x3 120 stay    12.1/4.43 19.1/1.03 11.9/6.56 11.9/3.42 11.9/2.30 12.0/2.53 11.9/2.43 | -3.14±0.81* -0.95±0.77* +0.11±0.42  -0.14±0.22  -2.21±0.88* -5.74±0.79* -2.07±0.78*
+x3 120 hotspot 12.4/4.64 18.3/0.80 12.1/7.19 12.0/3.62 12.0/2.44 11.9/2.47 11.9/2.26 | -3.58±1.08* -1.41±0.67* -0.26±0.43  -0.20±0.52  -2.84±0.71* -4.89±0.82* -2.63±0.79*
+x2 120 chase   12.2/4.64 19.0/1.18 11.8/5.53 11.9/3.26 12.0/2.26 11.9/2.11 11.9/2.02 | -2.27±0.68* -1.28±0.60* -0.38±0.32* -0.11±0.22  -2.90±1.13* -6.23±1.21* -2.78±1.07*
+x2 120 stay    11.9/2.64 20.4/0.98 11.8/3.86 11.8/1.88 11.8/1.15 11.8/1.17 11.8/1.14 | -1.98±0.88* -0.76±0.76* +0.03±0.38  -0.02±0.05  -1.63±0.88* -8.42±1.13* -1.60±0.90*
+x2 120 hotspot 11.9/3.91 18.1/1.79 11.6/4.84 11.7/2.83 11.8/1.68 11.8/1.45 11.7/1.69 | -2.01±0.76* -1.12±0.62* -0.03±0.21  +0.18±0.23  -2.37±0.95* -6.53±1.70* -2.55±0.87*
+summary over settings:
+  nc_bc-nc_bo (charge_wait_min): better/worse 9/0 of 9, range -4.48..-1.98; over realizations -3.097±0.536 p=2.3e-10; Holm better 9 worse 0
+  nc_bj-nc_bc (to_charger_min): better/worse 9/0 of 9, range -1.78..-0.76; over realizations -1.253±0.325 p=1.5e-07; Holm better 9 worse 0
+  nc_bj-nc_bs (to_charger_min): better/worse 1/0 of 9, range -0.38..+0.21; over realizations -0.076±0.141 p=2.8e-01; Holm better 0 worse 0
+  nc_bj-nc_ch (to_charger_min): better/worse 0/0 of 9, range -0.20..+0.18; over realizations -0.025±0.133 p=7.0e-01; Holm better 0 worse 0
+  nc_bj-nc_na (to_charger_min): better/worse 9/0 of 9, range -4.58..-1.63; over realizations -2.920±0.408 p=5.6e-12; Holm better 9 worse 0
+  nc_bj-nc_sm (to_charger_min): better/worse 9/0 of 9, range -8.42..-3.79; over realizations -5.757±0.487 p=6.5e-16; Holm better 9 worse 0
+  nc_ch-nc_na (to_charger_min): better/worse 9/0 of 9, range -4.66..-1.60; over realizations -2.895±0.406 p=6.1e-12; Holm better 9 worse 0
+  nc_bj-nc_na: passenger wait -0.07..+0.06; fleet drive + queue veh-h -3.82..-0.56
+  nc_bj-nc_sm: passenger wait -0.10..+0.02; fleet drive + queue veh-h -4.25..-2.38
+  nc_bj-nc_ch: passenger wait -0.01..+0.02; fleet drive + queue veh-h -0.23..+0.10
+  joint rule: drive 10.4-14.7 min per session (setting means 11.7-13.1); stranded 0; share of fleet time 0.007-0.043
+
 MUST-CHARGE VEHICLES PER STEP (joint rule): largest batch per setting (max over seeds), steps per shift with >= 5
 x3 4ch 160 chase   max 7 | >=5 0.05
 x3 4ch 160 stay    max 6 | >=5 0.05

@@ -165,8 +165,17 @@ def parse_ms(method):
 
 def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None, demand_k=1.0,
             network=None, dm=None, alpha_sd=0.0, alpha_mean=0.0, idle_humans="stay", piles=None, station_km=0.0,
-            **env_kw):
+            stations="loop", **env_kw):
     rng = np.random.default_rng(seed)
+    if stations == "afdc":                # public DC fast-charging sites outside the Loop (build_afdc_stations.py)
+        od_, sp_, z_, _ = network or load_network()
+        af = json.load(open(Path(__file__).parents[1] / "data" / "network" / "afdc_stations.json"))
+        od_ = {a: dict(row) for a, row in od_.items()}
+        for sid, row in af["od_km"].items():
+            od_[sid] = dict(row)
+            for a, d in row.items():
+                od_.setdefault(a, {})[sid] = d
+        network = (od_, sp_, z_, {st["station_id"]: (st["piles"], 50.0) for st in af["stations"]})
     if piles is not None:                   # charger-scarcity scenario: piles per station
         od_, sp_, z_, st_ = network or load_network()
         network = (od_, sp_, z_, {k: (int(piles), kw) for k, (_, kw) in st_.items()})
@@ -301,7 +310,7 @@ def run_one(method, seed, av_rate=0.5, fleet_size=80, theta=1.5, theta_true=None
     m = env.metrics()
     m.update(method=method, seed=seed, av_rate=av_rate, fleet_size=fleet_size, theta=theta, demand_k=demand_k,
              theta_true=theta if theta_true is None else theta_true, deviation=env.deviation, alpha_sd=alpha_sd,
-             alpha_mean=alpha_mean, idle_humans=idle_humans, piles=piles, station_km=station_km,
+             alpha_mean=alpha_mean, idle_humans=idle_humans, piles=piles, station_km=station_km, stations=stations,
              diag_same_as_fallback=dg["same"] / max(1, dg["n_h"]), diag_move_h=dg["move"] / max(1, dg["n_h"]),
              diag_pi_order=dg["pi"] / max(1, dg["n_h"]), diag_tt_order=dg["tt"] / max(1, dg["n_h"]),
              diag_move_av=dg["move_av"] / max(1, dg["n_av"]), diag_n_orders_h=dg["n_h"],
@@ -360,14 +369,16 @@ if __name__ == "__main__":
     ap.add_argument("--piles", nargs="+", type=int, default=[None], help="chargers per station (default: network)")
     ap.add_argument("--station_km", nargs="+", type=float, default=[0.0],
                     help="extra access distance (km) to and from every station (distant-station scenario)")
+    ap.add_argument("--stations", nargs="+", default=["loop"],
+                    help="loop: eight stations in the Loop (network); afdc: public DC fast-charging sites outside it")
     ap.add_argument("--alpha_mean", nargs="+", type=float, default=[0.0],
                     help="common shift of the compliance logit (negative: less compliant drivers)")
     ap.add_argument("--workers", type=int, default=28)
     ap.add_argument("--tag", default="eval")
     args = ap.parse_args()
     jobs = [(m, s, dict(av_rate=a, fleet_size=f, hours=args.hours, demand_k=k, deviation=dv,
-                        theta_true=args.theta_true, alpha_sd=sd, alpha_mean=am, idle_humans=ih, piles=pl, station_km=sk))
-            for sk in args.station_km for pl in args.piles for ih in args.idle_humans for am in args.alpha_mean for sd in args.alpha_sd for dv in args.deviation for k in args.demand_k for a in args.av_rates for f in args.fleet
+                        theta_true=args.theta_true, alpha_sd=sd, alpha_mean=am, idle_humans=ih, piles=pl, station_km=sk, stations=sl))
+            for sl in args.stations for sk in args.station_km for pl in args.piles for ih in args.idle_humans for am in args.alpha_mean for sd in args.alpha_sd for dv in args.deviation for k in args.demand_k for a in args.av_rates for f in args.fleet
             for m in args.methods for s in range(args.seeds)]
     with Pool(args.workers) as pool:
         R = pool.map(_job, jobs, chunksize=1)

@@ -8,6 +8,7 @@ A rolling-horizon dispatcher repositions vacant vehicles and chooses charging st
 
 | Path | Content |
 |---|---|
+| `chicago_loop/data/network/build_afdc_stations.py` | Second station layout: the eight public CCS fast-charging sites nearest the Loop outside it (AFDC station API, raw response in `afdc_dcfc_chicago_raw.json`), with zone-to-site distances; used with `--stations afdc` |
 | `chicago_loop/models/optimizer.py` | Dispatch MILP (demand coverage with margin, station-choice rules in `STATION_RULES`, expected supply, Γ_π protection) |
 | `chicago_loop/models/compliance.py` | Logit compliance model and expected-supply coefficients |
 | `chicago_loop/env/shift_sim.py` | Event-timed 12-h shift simulator (requests, abandonment, driver compliance, charging queues) |

@@ -50,6 +50,10 @@ $R --methods rob_mpc_nc_ch rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviatio
 $R --methods rob_mpc_nc_ch rob_mpc_nc_bj --demand_k 2 --fleet 120 --deviation chase stay hotspot --piles 2 3 4 --tag st_ch_k2
 $R --methods rob_mpc_nc_ch rob_mpc_nc_bj --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --piles 2 4 \
    --station_km 1.5 3 --tag st_ch_far
+# Public DC fast-charging sites outside the Loop (chicago_loop/data/network/build_afdc_stations.py)
+AF="rob_mpc_nc_na rob_mpc_nc_sm rob_mpc_nc_bo rob_mpc_nc_bc rob_mpc_nc_bs rob_mpc_nc_bj rob_mpc_nc_ch"
+$R --methods $AF --demand_k 3 --fleet 120 160 --deviation chase stay hotspot --stations afdc --tag st_afdc_k3
+$R --methods $AF --demand_k 2 --fleet 120 --deviation chase stay hotspot --stations afdc --tag st_afdc_k2
 
 # Compliance: mixtures, AV share, compliance level, driver heterogeneity, multi-step, misspecification
 $R --methods rob_mpc_nc_bc ermpc_bc --demand_k 3 --fleet 120 160 --av_rates 0.5 --deviation mix0 mix0.25 mix0.5 mix0.75 mix1 --tag s_final_mix

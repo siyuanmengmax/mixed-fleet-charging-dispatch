@@ -408,6 +408,68 @@ def charger_table():
               f"Holm shorter {sum(pv[i][1] < 0 for i in rej)} longer {sum(pv[i][1] > 0 for i in rej)}")
 
 
+def afdc_table():
+    """Public DC fast-charging sites outside the Loop (st_afdc_* runs, data/network/afdc_stations.json):
+    per setting drive / queue per session by rule, then counts of significant differences (paired 95%),
+    Holm-corrected counts, tests over realizations, passenger wait, and fleet vehicle-hours."""
+    R = _with_total(loads("st_afdc_k3", "st_afdc_k2"))
+    if not R:
+        return
+    for r in R:
+        r["drive_min"] = r["to_charger_min"] - r["charge_wait_min"]
+        r["veh_h_dq"] = r["veh_h_queue"] + r["veh_h_to_station"]
+    rules = ("rob_mpc_nc_na", "rob_mpc_nc_sm", "rob_mpc_nc_bo", "rob_mpc_nc_bc", "rob_mpc_nc_bs", "rob_mpc_nc_ch", MAIN)
+    pairs = (("rob_mpc_nc_bc", "rob_mpc_nc_bo", "charge_wait_min"), (MAIN, "rob_mpc_nc_bc", "to_charger_min"),
+             (MAIN, "rob_mpc_nc_bs", "to_charger_min"), (MAIN, "rob_mpc_nc_ch", "to_charger_min"),
+             (MAIN, "rob_mpc_nc_na", "to_charger_min"), (MAIN, "rob_mpc_nc_sm", "to_charger_min"),
+             ("rob_mpc_nc_ch", "rob_mpc_nc_na", "to_charger_min"))
+    print("\nPUBLIC DC FAST-CHARGING SITES OUTSIDE THE LOOP: drive / queue per session for "
+          + " / ".join(SHORT(m) for m in rules) + "; then " + ", ".join(f"{SHORT(a)}-{SHORT(b)}" for a, b, _ in pairs))
+    S = [(f"x{k:g} {f} {dv:7}", dict(demand_k=k, fleet_size=f, deviation=dv))
+         for k, f in ((3.0, 160), (3.0, 120), (2.0, 120)) for dv in ("chase", "stay", "hotspot")
+         if any(r["demand_k"] == k and r["fleet_size"] == f and r["deviation"] == dv for r in R)]
+    acc = {p: dict(mu=[], better=0, worse=0, pv=[], seed={}) for p in pairs}
+    for name, sel in S:
+        print(f"{name} " + " ".join(f"{mean(R, m, 'drive_min', **sel):.1f}/{mean(R, m, 'charge_wait_min', **sel):.2f}" for m in rules)
+              + " |" + "".join(f" {fmt(*paired(R, a, b, k, **sel))}" for a, b, k in pairs))
+        for p in pairs:
+            a, b, k = p
+            mu, h = paired(R, a, b, k, **sel)
+            x = {r["seed"]: r[k] for r in R if r["method"] == a and all(r[q] == v for q, v in sel.items())}
+            y = {r["seed"]: r[k] for r in R if r["method"] == b and all(r[q] == v for q, v in sel.items())}
+            d = np.array([x[s] - y[s] for s in sorted(x)])
+            acc[p]["mu"].append(mu)
+            acc[p]["better"] += mu < -h
+            acc[p]["worse"] += mu > h
+            acc[p]["pv"].append((stats.ttest_1samp(d, 0).pvalue, np.sign(mu)))
+            for s in sorted(x):
+                acc[p]["seed"].setdefault(s, []).append(x[s] - y[s])
+    print("summary over settings:")
+    for (a, b, k), c in acc.items():
+        m = np.array([np.mean(v) for v in c["seed"].values()])
+        h = stats.t.ppf(0.975, len(m) - 1) * m.std(ddof=1) / np.sqrt(len(m))
+        order = sorted(range(len(c["pv"])), key=lambda i: c["pv"][i][0])
+        rej = set()
+        for rank, i in enumerate(order):
+            if c["pv"][i][0] > 0.05 / (len(c["pv"]) - rank):
+                break
+            rej.add(i)
+        print(f"  {SHORT(a)}-{SHORT(b)} ({k}): better/worse {c['better']}/{c['worse']} of {len(S)}, range "
+              f"{min(c['mu']):+.2f}..{max(c['mu']):+.2f}; over realizations {m.mean():+.3f}±{h:.3f} "
+              f"p={stats.ttest_1samp(m, 0).pvalue:.1e}; Holm better {sum(c['pv'][i][1] < 0 for i in rej)} "
+              f"worse {sum(c['pv'][i][1] > 0 for i in rej)}")
+    for b in ("rob_mpc_nc_na", "rob_mpc_nc_sm", "rob_mpc_nc_ch"):
+        w = [paired(R, MAIN, b, "wait_all_min", **sel)[0] for _, sel in S]
+        v = [paired(R, MAIN, b, "veh_h_dq", **sel)[0] for _, sel in S]
+        print(f"  {SHORT(MAIN)}-{SHORT(b)}: passenger wait {min(w):+.2f}..{max(w):+.2f}; fleet drive + queue veh-h "
+              f"{min(v):+.2f}..{max(v):+.2f}")
+    J = [r for r in R if r["method"] == MAIN]
+    print(f"  joint rule: drive {min(r['drive_min'] for r in J):.1f}-{max(r['drive_min'] for r in J):.1f} min per session "
+          f"(setting means {min(mean(R, MAIN, 'drive_min', **sel) for _, sel in S):.1f}-"
+          f"{max(mean(R, MAIN, 'drive_min', **sel) for _, sel in S):.1f}); stranded {sum(r['n_stranded'] for r in R)}; "
+          f"share of fleet time {min(r['share_charging_total'] for r in J):.3f}-{max(r['share_charging_total'] for r in J):.3f}")
+
+
 def batch_table():
     """Largest number of must-charge vehicles assigned together in one step (st_nmax runs, joint rule)."""
     R = loads("st_nmax_k3", "st_nmax_k2")
@@ -608,6 +670,7 @@ if __name__ == "__main__":
     pooled_table()
     realization_test()
     charger_table()
+    afdc_table()
     batch_table()
     cost_table()
     far_table()
